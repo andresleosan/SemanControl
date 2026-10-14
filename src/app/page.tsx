@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Manrope } from "next/font/google";
 import { ArrowDown, ArrowRight, ArrowUpRight, Check, ChevronDown, ClipboardCheck, CreditCard, MapPin, Package, Route, ShieldCheck, Smartphone, Users, Wallet, WifiOff } from "lucide-react";
 import RoutePreview from "@/components/marketing/route-preview";
+import InstallAppButton, { InstallAppProvider } from "@/components/marketing/install-app";
 import styles from "./landing.module.css";
 
 const manrope = Manrope({ subsets: ["latin"], display: "swap" });
@@ -47,12 +48,12 @@ const questions = [
 ];
 
 export default function Home() {
-  return <div className={`${manrope.className} ${styles.page}`}>
+  return <InstallAppProvider><div className={`${manrope.className} ${styles.page}`}>
     <a className={styles.skip} href="#contenido">Ir al contenido</a>
     <header className={styles.header}><div className={styles.nav}>
       <Brand />
       <nav aria-label="Navegación principal" className={styles.navLinks}><a href="#como-funciona">Cómo funciona</a><a href="#para-tu-negocio">Para tu negocio</a><a href="#preguntas">Preguntas</a></nav>
-      <a href="/login" className={styles.login}>Ingresar <ArrowUpRight size={17} aria-hidden="true" /></a>
+      <div className={styles.navActions}><InstallAppButton variant="header" className={styles.installNav} /><a href="/login" className={styles.login}>Ingresar <ArrowUpRight size={17} aria-hidden="true" /></a></div>
     </div></header>
     <main id="contenido">
       <section className={styles.hero} aria-labelledby="hero-title">
@@ -60,7 +61,7 @@ export default function Home() {
           <p className={styles.eyebrow}><span className={styles.statusDot} /> PARA NEGOCIOS QUE VENDEN FIADO</p>
           <h1 id="hero-title">Tu recorrido de cobro,<br /><span>con las cuentas claras.</span></h1>
           <p className={styles.heroDescription}>De la tarjeta de papel al control de cada visita. Organiza tus clientes, registra abonos y entregas, y conoce cómo termina cada recorrido.</p>
-          <div className={styles.heroActions}><DemoLink /><a href="#como-funciona" className={styles.textLink}>Ver cómo funciona <ArrowDown size={17} aria-hidden="true" /></a></div>
+          <div className={styles.heroActions}><DemoLink /><InstallAppButton variant="hero" /><a href="#como-funciona" className={styles.textLink}>Ver cómo funciona <ArrowDown size={17} aria-hidden="true" /></a></div>
           <div className={styles.heroNotes}><span><Smartphone size={16} aria-hidden="true" /> Desde tu celular</span><span><ShieldCheck size={16} aria-hidden="true" /> Acceso por roles</span></div>
         </div>
         <RoutePreview />
@@ -101,5 +102,5 @@ export default function Home() {
       </section>
     </main>
     <footer className={styles.footer}><div className={styles.footerTop}><Brand /><p>Tu recorrido, tus tarjetas<br />y tus cuentas en un solo lugar.</p><a href={demoUrl} target="_blank" rel="noopener noreferrer">Conoce ALS DevStudio <ArrowUpRight size={16} aria-hidden="true" /></a></div><div className={styles.footerBottom}><span>© 2026 SemanControl</span><span>Hecho para llevar el control de cada visita.</span><a href="/login">Ingresar a mi cuenta <ArrowRight size={15} aria-hidden="true" /></a></div></footer>
-  </div>;
+  </div></InstallAppProvider>;
 }

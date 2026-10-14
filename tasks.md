@@ -91,3 +91,11 @@ Configuración, límites de evidencia y recuperación: [integración Firebase](d
 
 - [x] Piloto manual en producción completado con tres tarjetas y un producto ficticios marcados PRUEBA, por elección del propietario. Trabajador con Google real, aperturas, abono, entrega fiada, entrega con abono, sincronización y cierre comprobados. Efectivo esperado/recibido $15.000, cuatro kits devueltos, ocho unidades totales/disponibles y cero diferencias; un cierre y una auditoría de cierre.
 - [ ] Ampliar la prueba manual a operación sin conexión y comprobantes antes del arranque real. La captura de tarjetas desde fotos sigue aplazada. La prueba actual conserva sus datos ficticios; no se ha declarado validación manual de estos flujos adicionales.
+
+## Instalación desde la landing — 2026-10-14
+
+- [x] Botones con icono «Instalar app» en cabecera/hero; aviso nativo compartido y ayuda accesible cuando no está disponible, sin declarar instalación solo por aceptar el aviso.
+- [x] PNG192/512 y Apple180 derivados del favicon Ruta; identidad y destino de inicio de la PWA conservados.
+- [x] Suite 179/179, seis pruebas nuevas de instalación, lint, TypeScript, auditoría y build de producción correctos. QA Chrome en seis anchos y once comprobaciones HTTP locales correctas; revisión independiente sin bloqueantes.
+- [x] Corregido snapshot de auditoría JSON null en altas de tarjeta, reproducido por el test operativo existente antes y después.
+- [ ] Publicación y comprobación final del botón en el dominio público.

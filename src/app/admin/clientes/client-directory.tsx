@@ -89,7 +89,9 @@ function AdjustmentForm({ client, initialDelta = "", initialReason = "", loading
 
 function AuditSnapshot({ label, raw }: { label: string; raw?: string | null }) {
   if (!raw) return null;
-  let values: Record<string, unknown>; try { values = JSON.parse(raw) as Record<string, unknown>; } catch { return null; }
+  let parsed: unknown; try { parsed = JSON.parse(raw); } catch { return null; }
+  if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+  const values = parsed as Record<string, unknown>;
   const labels: Record<string, string> = { name: "Nombre", address: "Dirección", address_reference: "Referencia", route_order: "Orden", linked_email: "Correo", is_active: "Activa", current_balance: "Saldo" };
   return <div style={{ marginBottom: 12 }}><strong>{label}</strong><dl>{Object.entries(labels).filter(([key]) => key in values).map(([key, name]) => <div key={key}><dt style={{ display: "inline", fontWeight: 700 }}>{name}: </dt><dd style={{ display: "inline" }}>{key === "current_balance" && typeof values[key] === "number" ? <Money value={values[key] as number} /> : key === "is_active" ? values[key] ? "Sí" : "No" : String(values[key] ?? "Sin correo")}</dd></div>)}</dl></div>;
 }

@@ -44,3 +44,17 @@ Validación pública posterior: **16/16 comprobaciones HTTP**. Portada, login, r
 Preview local cerrado y `pnpm clean` completado. Se retiraron builds, cachés y temporales; hashes antes/después confirman los 29 archivos de persistencia local y los tres archivos de configuración sin cambios. Las dependencias quedan instaladas para continuar el desarrollo. Fuente, lockfile, capturas de revisión y backups se conservan.
 
 Versión de producción anterior a la landing: `022bea53-5fd5-4d63-831d-a7c6cac40dcd`. Si fuera necesario revertir el nuevo Worker, recuperar esa versión con `pnpm exec wrangler rollback 022bea53-5fd5-4d63-831d-a7c6cac40dcd --config wrangler.production.toml`.
+
+## Instalar app desde la landing — 14 de octubre de 2026
+
+Solicitud del propietario: añadir un icono para instalar desde la portada. Se incorporan dos botones «Instalar app», en cabecera y hero, con un controlador compartido. Un clic utiliza `beforeinstallprompt` cuando el navegador lo ofrece; cada evento se consume una vez y el doble clic no abre solicitudes repetidas. Aceptar el aviso no se presenta como instalación confirmada: `appinstalled` o el modo standalone cambian la acción a «Abrir app». Sin aviso disponible, un diálogo explica Android/Chrome, iPhone/Safari y computador, con cierre por Escape y retorno del foco.
+
+Se conserva el favicon Ruta y se añaden PNG 192/512 y Apple 180 opacos derivados del mismo SVG. `start_url=/ruta`, `scope=/`, display e identidad implícita del manifest se conservan. No hay servicios, permisos, dependencias ni migraciones nuevos. El service worker, Firebase y los datos D1/R2 permanecen fuera de este cambio.
+
+Verificación: `pnpm test` 179/179 en 16 archivos, incluidas seis pruebas nuevas de instalación con React/Chrome real y eventos de instalación controlados, además de las siete pruebas operativas existentes; ESLint, TypeScript del build y auditoría pnpm correctos. Build de producción final correcto; dry-run de 52 assets y 1504,58 KiB gzip. Once comprobaciones HTTP del Worker compilado validan botones, contactos ALS, metadata, manifest, PNG, login y protección de rutas. Chrome a 320/390/768/901/930/1280 px confirma controles de 44 px o más, sin desbordamiento ni superposición de marca/acciones; consola sin errores. [Vista móvil](install-mobile.jpg).
+
+La suite completa reprodujo un fallo anterior al abrir la auditoría de una tarjeta nueva: el JSON `null` se trataba como objeto. Se corrigió únicamente la validación del snapshot antes de mostrar sus campos; el mismo caso existente se comprobó fallando antes y pasando después, sin modificar la prueba. La suite final completa queda aprobada.
+
+La revisión de seguridad independiente no encontró bloqueantes. Las pruebas no instalan software en el teléfono ni automatizan Google. La interacción local con el evento real de Chrome invocó la solicitud; la pestaña se cerró sin completar una instalación. La instalación final en un móvil queda a cargo de su propietario. El funcionamiento sin conexión conserva sus límites anteriores.
+
+Rollback de esta actualización: versión `e74e8c9b-618a-42bd-bd2f-ce39a19d77d6`, mediante `pnpm exec wrangler rollback e74e8c9b-618a-42bd-bd2f-ce39a19d77d6 --config wrangler.production.toml`.

@@ -74,3 +74,9 @@ El propietario confirmó y D1 remoto verificó: abono de $10.000 sin entrega; en
 Después de la declaración de sincronización del trabajador, el propietario cerró como ADMIN. D1 confirmó `CLOSED`, un único cierre y evento `DISPATCH_CLOSE`, efectivo esperado/recibido de $15.000 y devolución esperada/recibida de cuatro unidades. Stock total ocho, reserva cero y disponible ocho; las devoluciones liberaron reservas sin duplicar stock y los saldos permanecieron iguales. Evidencia operativa y backup permanecen privados en `.wrangler/backups`, ignorados por Git.
 
 Esta prueba manual cubre acceso WORKER, cobros en efectivo, entregas y cierre con datos ficticios. La operación sin conexión, comprobantes y portal CLIENT mantienen su cobertura automatizada; no se afirma una prueba manual publicada adicional. Los registros PRUEBA continúan en el entorno y deben tratarse antes de introducir operación real.
+
+## Botón de instalación — 14 de octubre de 2026
+
+Seis pruebas nuevas con React real y Chrome headless verifican instrucciones por clic/Enter, Escape/foco, evento compartido entre dos botones, doble clic, cancelación, aceptación pendiente de `appinstalled`, confirmación externa, errores del aviso y modo standalone/iOS. Usan eventos controlados y servidor estático aislado, sin Google, D1/R2 ni instalación en el sistema. La suite completa final pasa 179/179. El caso operativo de alta física reprodujo además un snapshot de auditoría `null`; la guardia de render se corrigió y el mismo test pasó después.
+
+Chrome sobre el Worker final verifica ambas acciones y la cabecera a 320/390/768/901/930/1280 px; medidas de contenido y extremos de los elementos descartan recorte y solapamiento. No hay errores JS. Once checks HTTP locales validan manifest/identidad, PNG192/512, Apple180, contactos y permisos. [Informe y captura](landing/README.md).
