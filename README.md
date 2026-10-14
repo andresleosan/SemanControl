@@ -2,7 +2,7 @@
 
 SemanControl digitaliza tarjetas de fiado y recorridos de cobro. Las Fases 1–4 incluyen operación del trabajador, bodega/cierre/cartera del administrador y tarjeta del cliente. Next.js App Router, TypeScript, Tailwind, Firebase Google, Workers/OpenNext, D1 y R2 privado.
 
-La [landing comercial](docs/landing/README.md) está preparada en `/`, con demostración y contacto hacia ALS DevStudio; el acceso a la app sigue en `/login`. Su publicación está pendiente de revisión final del propietario.
+La [landing comercial](docs/landing/README.md) está publicada en [semancontrol.pages.dev](https://semancontrol.pages.dev/), con demostración y contacto hacia ALS DevStudio; el acceso a la app sigue en `/login`.
 
 ## Qué incluye
 

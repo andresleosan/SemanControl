@@ -39,7 +39,7 @@ La versión local está validada y el propietario confirmó publicar la versión
 
 ## Publicación y recuperación
 
-El propietario confirmó el despliegue y se ejecutó `pnpm deploy:production` con exit 0 el 14 de octubre de 2026. El Worker `semancontrol` está activo al 100 % con la versión **`022bea53-5fd5-4d63-831d-a7c6cac40dcd`**. El puente Pages existente ya apunta al mismo Worker y no necesitó volver a publicarse. No se aplicaron migraciones ni seed.
+El propietario confirmó el despliegue y se ejecutó `pnpm deploy:production` con exit 0 el 14 de octubre de 2026. Firebase se publicó al 100 % en el Worker `semancontrol` con la versión **`022bea53-5fd5-4d63-831d-a7c6cac40dcd`**. El puente Pages existente ya apunta al mismo Worker y no necesitó volver a publicarse. No se aplicaron migraciones ni seed. La publicación posterior de la [landing](landing/README.md) conserva esta integración; su informe registra la versión activa más reciente.
 
 Validación pública sobre `https://semancontrol.pages.dev`: **13/13 comprobaciones HTTP**, verificadas a las 17:16 de America/Bogota. Incluyen login 200 con Google habilitado y configuración Firebase correcta en los chunks publicados; redirecciones de las tres áreas privadas; API sin sesión 401; Origin incorrecto 403; JWT inválido 401; cierre de cookie Secure/HttpOnly/SameSite=Lax; manifest, service worker e icono 200. Chrome mostró el botón **Continuar con Google** y cero errores JS. El inicio de sesión real del ADMIN se probó en local; no se automatizó nuevamente el consentimiento en producción por la interferencia documentada de Browser Use.
 

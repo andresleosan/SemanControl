@@ -6,7 +6,9 @@ La aplicación completa se ejecuta en un Worker OpenNext. El proyecto Pages `sem
 
 ## Configuración activa
 
-Firebase Authentication está enlazado al proyecto `semancontrolapp`. La app web registrada es `1:377945438832:web:766ea96b50ec272ab512b5`; los TOML local y de producción usan ese mismo project ID. Las cuatro variables públicas están en `.env.local` y `.env.production.local`, ignorados por Git. Google está habilitado y los dominios `semancontrol.pages.dev`, `localhost` y `127.0.0.1` están autorizados en Firebase. El build revisado se publicó con confirmación del propietario el 14 de octubre de 2026: versión `022bea53-5fd5-4d63-831d-a7c6cac40dcd`, con 13 comprobaciones públicas correctas. No requirió migraciones ni volver a publicar el puente Pages.
+Firebase Authentication está enlazado al proyecto `semancontrolapp`. La app web registrada es `1:377945438832:web:766ea96b50ec272ab512b5`; los TOML local y de producción usan ese mismo project ID. Las cuatro variables públicas están en `.env.local` y `.env.production.local`, ignorados por Git. Google está habilitado y los dominios `semancontrol.pages.dev`, `localhost` y `127.0.0.1` están autorizados en Firebase.
+
+Versión activa al 100 %: `e74e8c9b-618a-42bd-bd2f-ce39a19d77d6`, publicada el 14 de octubre de 2026 a las 18:02 America/Bogota desde el código `e32be62`. Incluye Firebase y la landing comercial. El propietario confirmó el push y la publicación; 16 comprobaciones HTTP públicas y la revisión de portada/acceso en Chrome fueron correctas. No requirió migraciones ni volver a publicar el puente Pages. [Evidencia y rollback de la landing](landing/README.md).
 
 | Campo | Valor requerido |
 | --- | --- |

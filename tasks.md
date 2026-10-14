@@ -81,6 +81,12 @@ Configuración, límites de evidencia y recuperación: [integración Firebase](d
 - [x] Vista ilustrativa ficticia, beneficios, recorrido completo, roles, FAQ, SEO e imagen para compartir. Sin cambios en datos ni migraciones.
 - [x] 211 pruebas existentes, TypeScript, lint, auditoría y build de producción correctos. Dry-run: 50 assets, 1502,42 KiB gzip.
 - [x] HTTP local 9/9 de marketing y 22/22 del smoke existente; cinco anchos móviles/escritorio, contraste, FAQ y enlaces internos revisados. Capturas y revisión independiente registradas.
-- [ ] Confirmación final de publicación y limpieza posterior.
+- [x] Propietario confirmó push/publicación. Commit `e32be62` subido a `origin/main`; Worker `e74e8c9b-618a-42bd-bd2f-ce39a19d77d6` activo al 100 %. Sin migraciones ni seed.
+- [x] 16/16 comprobaciones HTTP públicas correctas; portada e ingreso revisados en Chrome, Google habilitado y sin errores JS. Captura móvil corregida y evidencia de publicación guardada.
+- [x] Preview cerrado y `pnpm clean` completado. Hashes confirman 29 archivos de estado D1/R2 y tres configuraciones sin cambios; dependencias listas para continuar.
 
 [Revisión de la landing y capturas](docs/landing/README.md).
+
+## Siguiente paso operativo
+
+- [ ] Piloto manual con 3–5 tarjetas físicas: comprobar saldo de apertura y orden, configurar productos/existencias y Gmail del trabajador, preparar un recorrido y revisar su primera visita/cierre. La captura desde fotos queda aplazada por indicación del propietario. Los datos reales se introducen en la aplicación, no en el repositorio.

@@ -60,3 +60,7 @@ Después de enlazar `semancontrolapp`, el propietario completó Google Sign-In d
 Esta comprobación cubre identidad real y navegación ADMIN en local. No demuestra todavía un acceso en el dominio público actualizado ni una prueba manual de cierre/renovación; estos últimos conservan su cobertura automatizada.
 
 Tras la confirmación de publicación se verificó `https://semancontrol.pages.dev/login` en Chrome: botón Google habilitado y cero errores JS. Se completaron 13/13 comprobaciones HTTP públicas de configuración Firebase, permisos, Origin, cookie Secure y recursos PWA. Versión publicada: `022bea53-5fd5-4d63-831d-a7c6cac40dcd`. No se repitió el consentimiento Google dentro de Browser Use; el propietario puede acceder desde su pestaña normal.
+
+## Landing publicada — 14 de octubre de 2026
+
+La portada y su enlace Ingresar se verificaron en Chrome sobre el dominio público tras publicar `e74e8c9b-618a-42bd-bd2f-ce39a19d77d6`: contenido correcto, Google habilitado en `/login` y sin errores JS en ambas pantallas. Las 16 comprobaciones HTTP públicas de marketing, SEO, permisos, sesión y PWA fueron correctas. La revisión local cubrió cinco anchos de 320 a 1280 px, FAQ con clic/Enter, contraste y enlaces; la evidencia móvil se corrigió con una captura del viewport real. [Informe y capturas](landing/README.md).
