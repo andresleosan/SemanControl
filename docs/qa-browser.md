@@ -64,3 +64,13 @@ Tras la confirmación de publicación se verificó `https://semancontrol.pages.d
 ## Landing publicada — 14 de octubre de 2026
 
 La portada y su enlace Ingresar se verificaron en Chrome sobre el dominio público tras publicar `e74e8c9b-618a-42bd-bd2f-ce39a19d77d6`: contenido correcto, Google habilitado en `/login` y sin errores JS en ambas pantallas. Las 16 comprobaciones HTTP públicas de marketing, SEO, permisos, sesión y PWA fueron correctas. La revisión local cubrió cinco anchos de 320 a 1280 px, FAQ con clic/Enter, contraste y enlaces; la evidencia móvil se corrigió con una captura del viewport real. [Informe y capturas](landing/README.md).
+
+## Piloto manual publicado — 14 de octubre de 2026
+
+El propietario completó el acceso Google del trabajador y el flujo desde su navegador, sin automatizar el consentimiento. Eligió datos ficticios marcados PRUEBA: tres tarjetas con aperturas de $50.000/$30.000/$0, un producto de $15.000 y carga inicial de seis unidades, sobre diez existencias totales. La carga utilizó los modelos de escritura existentes y quedó auditada; un backup previo fue restaurado y verificado en SQLite antes de cargarla. No hubo cambios de código ni despliegue adicional.
+
+El propietario confirmó y D1 remoto verificó: abono de $10.000 sin entrega; entrega de una unidad sin abono; entrega de una unidad con abono de $5.000. Saldos finales $40.000/$45.000/$10.000, efectivo $15.000, dos unidades entregadas y cuatro sobrantes. Hubo además una atención sin abono ni entrega que conserva saldo/stock; se registró como cuarta visita, sin duplicación financiera.
+
+Después de la declaración de sincronización del trabajador, el propietario cerró como ADMIN. D1 confirmó `CLOSED`, un único cierre y evento `DISPATCH_CLOSE`, efectivo esperado/recibido de $15.000 y devolución esperada/recibida de cuatro unidades. Stock total ocho, reserva cero y disponible ocho; las devoluciones liberaron reservas sin duplicar stock y los saldos permanecieron iguales. Evidencia operativa y backup permanecen privados en `.wrangler/backups`, ignorados por Git.
+
+Esta prueba manual cubre acceso WORKER, cobros en efectivo, entregas y cierre con datos ficticios. La operación sin conexión, comprobantes y portal CLIENT mantienen su cobertura automatizada; no se afirma una prueba manual publicada adicional. Los registros PRUEBA continúan en el entorno y deben tratarse antes de introducir operación real.

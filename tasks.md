@@ -89,4 +89,5 @@ Configuración, límites de evidencia y recuperación: [integración Firebase](d
 
 ## Siguiente paso operativo
 
-- [ ] Piloto manual con 3–5 tarjetas físicas: comprobar saldo de apertura y orden, configurar productos/existencias y Gmail del trabajador, preparar un recorrido y revisar su primera visita/cierre. La captura desde fotos queda aplazada por indicación del propietario. Los datos reales se introducen en la aplicación, no en el repositorio.
+- [x] Piloto manual en producción completado con tres tarjetas y un producto ficticios marcados PRUEBA, por elección del propietario. Trabajador con Google real, aperturas, abono, entrega fiada, entrega con abono, sincronización y cierre comprobados. Efectivo esperado/recibido $15.000, cuatro kits devueltos, ocho unidades totales/disponibles y cero diferencias; un cierre y una auditoría de cierre.
+- [ ] Ampliar la prueba manual a operación sin conexión y comprobantes antes del arranque real. La captura de tarjetas desde fotos sigue aplazada. La prueba actual conserva sus datos ficticios; no se ha declarado validación manual de estos flujos adicionales.
