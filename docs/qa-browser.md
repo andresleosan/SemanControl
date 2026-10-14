@@ -82,3 +82,7 @@ Seis pruebas nuevas con React real y Chrome headless verifican instrucciones por
 Chrome sobre el Worker final verifica ambas acciones y la cabecera a 320/390/768/901/930/1280 px; medidas de contenido y extremos de los elementos descartan recorte y solapamiento. No hay errores JS. Once checks HTTP locales validan manifest/identidad, PNG192/512, Apple180, contactos y permisos. [Informe y captura](landing/README.md).
 
 Publicación verificada: Worker `d7b6c2f8-b013-4fce-81f3-b84c5037b7de`, código `807d0f8`. Once comprobaciones públicas aprobadas; ambos botones visibles en Chrome y consola sin errores. La instalación final en Android/iPhone no se afirma como comprobada por estas pruebas.
+
+## Rediseño del acceso — 14 de octubre de 2026
+
+Worker `1e707899-db38-43cf-a265-c8515c581766`, código `88a2b0f`. La suite existente pasa 179/179; build, TypeScript y ESLint correctos. Chrome sobre el Worker compilado a 320/390/768/1280 px verifica ancho del documento, controles visibles y foco. «Volver al inicio» funciona con Tab/Enter; la portada permite volver mediante «Ingresar». Once comprobaciones HTTP locales y once públicas validan contenido, `noindex`, enlaces, Google habilitado y recursos/permiso existentes. La navegación pública al inicio también se comprobó con clic, sin errores de consola. No se repitió OAuth real ni se accedió a datos operativos. [Capturas y publicación](landing/README.md#user-content-acceso-y-regreso-al-inicio--14-de-octubre-de-2026).
