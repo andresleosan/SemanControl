@@ -1,4 +1,4 @@
-import { Layers3, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { GoogleSignInButton } from "./sign-in-button";
 
 export default function LoginPage() {
@@ -6,7 +6,7 @@ export default function LoginPage() {
     <main className="flex min-h-dvh items-center justify-center px-5 py-10">
       <section className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-7 shadow-sm sm:p-10" aria-labelledby="login-title">
         <div className="mb-7 flex items-center gap-3 text-[#155f4b]">
-          <span className="flex size-12 items-center justify-center rounded-xl bg-[#e8f3ee]"><Layers3 aria-hidden="true" size={28} /></span>
+          <img src="/pwa-icon.svg" width={48} height={48} alt="" aria-hidden="true" className="size-12 shrink-0" />
           <span className="text-xl font-bold tracking-tight">SemanControl</span>
         </div>
         <h1 id="login-title" className="text-3xl font-bold tracking-tight">Tus cuentas, al día.</h1>

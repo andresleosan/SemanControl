@@ -12,7 +12,7 @@ if (args.some((arg) => !["--dependencies", "--dry-run"].includes(arg))) {
 
 const targets = [
   ".next", ".open-next", ".wrangler/tmp", ".wrangler/test-browser", "coverage", "test-results",
-  "playwright-report", "tests/__pycache__", "tsconfig.tsbuildinfo",
+  "playwright-report", "tests/__pycache__", "tsconfig.tsbuildinfo", "deploy/pages/.wrangler/tmp",
 ];
 if (args.includes("--dependencies")) targets.push("node_modules");
 

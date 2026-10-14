@@ -1,0 +1,42 @@
+# Production is separate from wrangler.toml and its local D1/R2 state.
+# Google sign-in is pending. Set the real Firebase project ID together with
+# its public client configuration when authentication is enabled.
+name = "semancontrol"
+account_id = "05fb22c155667de064b55c4e287b21d8"
+main = ".open-next/worker.js"
+compatibility_date = "2026-10-14"
+compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
+workers_dev = false
+preview_urls = false
+
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
+
+[observability]
+enabled = true
+head_sampling_rate = 0.1
+
+[vars]
+FIREBASE_PROJECT_ID = ""
+APP_ORIGIN = "https://semancontrol.pages.dev"
+NEXTJS_ENV = "production"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "semancontrol-db"
+database_id = "2d4d54fc-5e45-4833-8361-caa9b2e64084"
+migrations_dir = "migrations"
+
+[[r2_buckets]]
+binding = "RECEIPTS_BUCKET"
+bucket_name = "semancontrol-receipts"
+
+[[services]]
+binding = "WORKER_SELF_REFERENCE"
+service = "semancontrol"
+
+[[ratelimits]]
+name = "AUTH_RATE_LIMITER"
+namespace_id = "10014317"
+simple = { limit = 60, period = 60 }

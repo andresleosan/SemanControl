@@ -48,3 +48,14 @@ Propuesta aprobada por el usuario y ejecutada con pnpm. Incluye las ocho pantall
 - Limpieza final: `pnpm clean`, `pnpm cf:typegen`, `pnpm clean:all` completados. Se retiran dependencias, builds, temporales y capturas regenerables; fuente/configuración/D1/R2/backups se conservan. Carpeta aproximadamente **5.9 MB**, sin contar el store compartido externo. Para continuar: `pnpm install --frozen-lockfile`.
 
 Límite operativo explícito: la app abierta atiende snapshots sin señal; reabrir requiere conexión para revalidar cuenta. D1 no ve colas de otros teléfonos: se declara sincronización y una visita tardía se concilia mediante incidencia/compensación referenciada. La prueba de identidad real y la configuración/publicación de producción quedan fuera de esta ejecución local.
+
+## Publicación para revisión — 2026-10-14
+
+Solicitud posterior del propietario: subir a `andresleosan/SemanControl` y publicar en `https://semancontrol.pages.dev/`. El usuario eligió el favicon **3, Ruta**, confirmó el correo del administrador y, ante el límite de proyectos Firebase, eligió publicar con Google Sign-In pendiente.
+
+- Código subido a la rama `main`. Configuración remota separada en `wrangler.production.toml`; el puente Pages usa un Service binding al Worker sin alterar Request ni respuesta. [Guía de publicación](docs/deploy-cloudflare.md).
+- D1 `semancontrol-db` y R2 privado `semancontrol-receipts` creados en la cuenta confirmada. Backup privado inicial en `.wrangler/backups/production-before-initial.sql`; migraciones 0001–0003 aplicadas remotamente. Un ADMIN preautorizado; cero clientes, productos o saldos sintéticos en la base remota.
+- Verificación actual: **171/171 Vitest**, incluidas las siete pruebas de navegador; **34/34 SQLite**; **4/4 del puente Pages**. Total **209 pruebas**. TypeScript, ESLint, build de producción y dry-run correctos; auditoría pnpm sin vulnerabilidades conocidas.
+- Worker publicado, versión `3fad04e5-7cab-4762-ae3c-a6c87579d92a`. Pages publicado en el dominio solicitado; **13/13 comprobaciones HTTP públicas** correctas, incluidas redirecciones, permisos, Origin, sesión pendiente, cookie Secure, manifest, SW e iconos. Chrome muestra el acceso pendiente, logo cargado y cero errores JavaScript. [Captura de publicación](docs/deployment/login-publicado.png).
+- `FIREBASE_PROJECT_ID=""` impide validar cualquier token con 503 `AUTH_NOT_CONFIGURED`. El botón Google está deshabilitado si falta cualquiera de las cuatro variables públicas. Las pantallas privadas requieren habilitar Firebase y volver a compilar; no se probó Google real en esta publicación.
+- La limpieza conserva Git, fuente, datos locales y backups. `pnpm clean:all` retira dependencias, builds y temporales regenerables, incluido el temporal de Pages; el store compartido externo se conserva.

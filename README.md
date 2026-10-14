@@ -97,6 +97,10 @@ La limpieza elimina builds, cachés y temporales; conserva código, lockfile, co
 
 ## Producción
 
-El UUID D1 de `wrangler.toml` es un identificador local de ejemplo, no un recurso remoto. Antes de desplegar, crea D1/R2, sustituye sus identificadores, configura Firebase/dominio autorizado y `APP_ORIGIN=https://tu-dominio`, elige un namespace de rate limit propio, mantén R2 sin acceso público, habilita límites/alertas de facturación y aplica migraciones con backup. El seed es exclusivamente de prueba. El comando `deploy` publica el build previamente generado; úsalo solo después de verificar y autorizar producción.
+El entorno remoto se configura en `wrangler.production.toml`; `wrangler.toml` conserva la base local de desarrollo. La aplicación se publica en un Worker y el puente Pages conserva [semancontrol.pages.dev](https://semancontrol.pages.dev/). Los recursos D1/R2 remotos están separados de los datos sintéticos locales. Consulta [la guía de publicación](docs/deploy-cloudflare.md) para compilar, aplicar migraciones y desplegar con pnpm.
+
+La publicación inicial tiene **Google Sign-In pendiente**, por el límite de proyectos Firebase de la cuenta. El botón de acceso muestra ese estado y las pantallas privadas permanecen protegidas. No se ha cargado el seed en producción. Para habilitar acceso, configura un proyecto Firebase real, sus cuatro variables públicas de build y el mismo `FIREBASE_PROJECT_ID` en el Worker; vuelve a compilar y desplegar. El administrador inicial ya fue preautorizado en D1 con el correo confirmado por el propietario.
+
+El favicon activo es la opción **3, Ruta**. Las [tres propuestas originales](docs/favicon-options/preview.html) están disponibles para comparar.
 
 La especificación está en [SPEC_SEMANCONTROL.md](SPEC_SEMANCONTROL.md), decisiones y costo previsto en [STACK.md](STACK.md), y avance en [tasks.md](tasks.md). La [propuesta de Fases 2–4](docs/propuesta-fases-2-4.md) está aprobada y aplicada.
