@@ -58,3 +58,7 @@ La suite completa reprodujo un fallo anterior al abrir la auditoría de una tarj
 La revisión de seguridad independiente no encontró bloqueantes. Las pruebas no instalan software en el teléfono ni automatizan Google. La interacción local con el evento real de Chrome invocó la solicitud; la pestaña se cerró sin completar una instalación. La instalación final en un móvil queda a cargo de su propietario. El funcionamiento sin conexión conserva sus límites anteriores.
 
 Rollback de esta actualización: versión `e74e8c9b-618a-42bd-bd2f-ce39a19d77d6`, mediante `pnpm exec wrangler rollback e74e8c9b-618a-42bd-bd2f-ce39a19d77d6 --config wrangler.production.toml`.
+
+Código publicado en `origin/main` mediante [`807d0f8`](https://github.com/andresleosan/SemanControl/commit/807d0f8). `pnpm deploy:production` terminó con exit 0: versión `d7b6c2f8-b013-4fce-81f3-b84c5037b7de`, inicio del Worker en 18 ms. Once comprobaciones HTTP públicas pasaron sobre esa versión, incluidas las dimensiones reales de los PNG. Chrome confirma ambos botones visibles en el dominio público, sin errores JS. [Captura publicada](install-published.jpg). No se volvió a automatizar Google ni se completó una instalación en el computador de revisión.
+
+Preview cerrado y `pnpm clean` completado. Hashes anteriores/posteriores confirman 29 archivos de estado local y tres configuraciones sin cambios; builds, cachés y temporales retirados. Las dependencias quedan listas para continuar. Capturas de revisión, backups, código y lockfile se conservan.

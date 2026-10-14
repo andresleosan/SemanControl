@@ -4,6 +4,8 @@ SemanControl digitaliza tarjetas de fiado y recorridos de cobro. Las Fases 1–4
 
 La [landing comercial](docs/landing/README.md) está publicada en [semancontrol.pages.dev](https://semancontrol.pages.dev/), con demostración y contacto hacia ALS DevStudio; el acceso a la app sigue en `/login`.
 
+Los botones «Instalar app» de la cabecera y la portada abren el aviso del navegador cuando está disponible o muestran instrucciones para Android/iPhone/computador. La instalación usa la PWA existente; no requiere registrar una app Android adicional en Firebase.
+
 ## Qué incluye
 
 - Configuración ejecutable de Next.js y Workers, bindings tipados `DB`, `RECEIPTS_BUCKET` y límite de creación de sesiones.

@@ -98,4 +98,5 @@ Configuración, límites de evidencia y recuperación: [integración Firebase](d
 - [x] PNG192/512 y Apple180 derivados del favicon Ruta; identidad y destino de inicio de la PWA conservados.
 - [x] Suite 179/179, seis pruebas nuevas de instalación, lint, TypeScript, auditoría y build de producción correctos. QA Chrome en seis anchos y once comprobaciones HTTP locales correctas; revisión independiente sin bloqueantes.
 - [x] Corregido snapshot de auditoría JSON null en altas de tarjeta, reproducido por el test operativo existente antes y después.
-- [ ] Publicación y comprobación final del botón en el dominio público.
+- [x] Publicado código `807d0f8` y Worker `d7b6c2f8-b013-4fce-81f3-b84c5037b7de`; once comprobaciones HTTP públicas correctas, ambos botones visibles en Chrome y sin errores JS. Sin migraciones ni cambios a datos.
+- [x] Preview cerrado y builds/cachés limpiados; 29 archivos de persistencia y tres configuraciones locales conservados por comparación de hashes. Dependencias disponibles para continuar.
