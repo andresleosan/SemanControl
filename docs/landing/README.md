@@ -62,3 +62,11 @@ Rollback de esta actualización: versión `e74e8c9b-618a-42bd-bd2f-ce39a19d77d6`
 Código publicado en `origin/main` mediante [`807d0f8`](https://github.com/andresleosan/SemanControl/commit/807d0f8). `pnpm deploy:production` terminó con exit 0: versión `d7b6c2f8-b013-4fce-81f3-b84c5037b7de`, inicio del Worker en 18 ms. Once comprobaciones HTTP públicas pasaron sobre esa versión, incluidas las dimensiones reales de los PNG. Chrome confirma ambos botones visibles en el dominio público, sin errores JS. [Captura publicada](install-published.jpg). No se volvió a automatizar Google ni se completó una instalación en el computador de revisión.
 
 Preview cerrado y `pnpm clean` completado. Hashes anteriores/posteriores confirman 29 archivos de estado local y tres configuraciones sin cambios; builds, cachés y temporales retirados. Las dependencias quedan listas para continuar. Capturas de revisión, backups, código y lockfile se conservan.
+
+## Acceso y regreso al inicio — 14 de octubre de 2026
+
+Se rediseña `/login` con la identidad de la portada: composición dividida en escritorio, recorrido ilustrado propio y entrada con Google; móvil concentra el acceso en una columna. La marca y el enlace visible «Volver al inicio» llevan a `/`. Se mejora el botón con el icono oficial de Google en color, Google Sans local, estado de carga y avisos legibles. La autenticación conserva su flujo, permisos, mensajes y destinos por rol.
+
+Verificación previa: 179/179 pruebas existentes aprobadas, ESLint y TypeScript correctos, build Next/OpenNext de producción y dry-run correctos (78 assets; 1501,62 KiB gzip). Once comprobaciones HTTP del Worker compilado pasan, incluidos acceso habilitado, enlace, `noindex`, asset Google local, instalación de la landing y rechazo de API privada sin sesión. Chrome a 320/390/768/1280 px confirma ausencia de desbordamiento, enlaces de 44 px y botón de 56 px visible. Tab enfoca «Volver al inicio» y Enter abre la portada; «Ingresar» regresa a `/login`. Consola sin errores JS. Revisión independiente de seguridad sin bloqueantes; se corrigió el contraste del pie. No se automatizó el consentimiento Google ni se modificaron datos.
+
+Rollback previsto: versión `d7b6c2f8-b013-4fce-81f3-b84c5037b7de`, mediante `pnpm exec wrangler rollback d7b6c2f8-b013-4fce-81f3-b84c5037b7de --config wrangler.production.toml`.

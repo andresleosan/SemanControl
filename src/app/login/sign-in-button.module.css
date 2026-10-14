@@ -1,0 +1,30 @@
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 56px;
+  padding: 12px;
+  border: 1px solid #747775;
+  border-radius: 10px;
+  background: #fff;
+  color: #1f1f1f;
+  font-family: var(--font-google-sans), Arial, sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.button img, .button svg { flex: 0 0 20px; }
+.button:not(:disabled):hover { background: #f4f7f5; box-shadow: 0 2px 8px #17372d12; }
+.button:not(:disabled):active { background: #e9efeb; }
+.button:focus-visible { outline: 3px solid #155f4b; outline-offset: 4px; }
+.button:disabled { cursor: default; opacity: .65; }
+.pending { margin-top: 16px; color: #52695c; font-size: 12px; line-height: 1.8; }
+.error { display: flex; align-items: flex-start; gap: 9px; margin-top: 16px; padding: 13px; border: 1px solid #f0cdcd; border-radius: 10px; background: #fff4f3; color: #932b2b; font-size: 12px; line-height: 1.8; }
+.error svg { flex-shrink: 0; margin-top: 2px; }
+.spinner { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }

@@ -58,6 +58,8 @@ Referencias de categoría: [Treinta](https://www.treinta.co/) por su presentaci�
 
 ## Alcance implementado y límites de verificación
 
+El acceso `/login` comparte la identidad de la landing: panel de recorrido propio en SVG, acceso separado y dos enlaces a `/` (marca y «Volver al inicio»). La composición pasa a una columna compacta en móvil. Manrope y Google Sans 500 se sirven con `next/font`; este último se limita al botón de Google. El icono local `public/google-g.png` procede de [Google Identity](https://developers.google.com/static/identity/images/g-logo.png), conforme a sus [guías de marca](https://developers.google.com/identity/branding-guidelines) consultadas el 2026-10-14. El rediseño no cambia SDK, sesión, permisos, almacenamiento ni metadata de indexación.
+
 Fases 1–4: operación atómica/idempotente, comprobantes privados, conciliación, cierres, QR firmado de 10 min/uso único, IndexedDB por UID/recorrido, PWA y las ocho pantallas. Login abre el destino del rol. La cola confirma con el servidor y mantiene incidencias tras cierre para una revisión administrativa; la compensación se registra y luego se referencia, sin volver a aplicar el cobro.
 
 La clave HMAC de vínculos se genera criptográficamente y se almacena exclusivamente en D1 `app_secrets`; no es una variable pública ni viaja al navegador. Los tokens se almacenan como SHA-256 y se revocan al cambiar el vínculo. `qrcode` 1.5.4 genera SVG local sin enviar tarjetas a un servicio externo. Los costos históricos están en `movement_items.unit_cost_price`, excluidos de toda lectura pública y protegidos por el serializador.

@@ -1,0 +1,103 @@
+.page {
+  --green: #155f4b;
+  --ink: #17372d;
+  --muted: #52695c;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: #f4f7f5;
+  color: var(--ink);
+  line-height: 1.6;
+}
+
+.page a { text-decoration: none; }
+.page svg { flex-shrink: 0; }
+.page a:focus-visible { outline: 3px solid var(--green); outline-offset: 5px; }
+.header, .footer { width: 100%; max-width: 1184px; margin-inline: auto; padding-inline: 32px; }
+.header { min-height: 110px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; color: var(--ink); font-size: 23px; font-weight: 800; letter-spacing: -.8px; white-space: nowrap; }
+.brand img { border-radius: 10px; }
+.brandDot { color: var(--green); }
+.backLink { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 44px; color: var(--green); font-size: 13px; font-weight: 700; padding: 9px 0 9px 12px; }
+.backLink:hover { text-decoration: underline; text-underline-offset: 5px; }
+.main { display: flex; align-items: center; justify-content: center; flex: 1; width: 100%; padding: 10px 32px 28px; }
+.shell { display: grid; grid-template-columns: .96fr 1.04fr; width: 100%; max-width: 1120px; min-height: 584px; border: 1px solid #dce6df; border-radius: 22px; overflow: hidden; background: #fff; box-shadow: 0 16px 50px -25px #17372d26; }
+.story { min-width: 0; background: var(--green); color: #fff; padding: 44px 47px 35px; }
+.storyEyebrow { display: flex; align-items: center; gap: 8px; font-size: 10px; font-weight: 750; line-height: 1.5; letter-spacing: .13em; color: #dff2aa; }
+.storyEyebrow > span { width: 6px; height: 6px; border-radius: 50%; background: #dff2aa; }
+.story h2 { margin-top: 24px; max-width: 390px; font-size: clamp(36px, 3.6vw, 43px); line-height: 1.15; font-weight: 700; letter-spacing: -.055em; text-wrap: balance; }
+.story h2 > span { color: #dff2aa; }
+.storyDescription { margin-top: 19px; max-width: 340px; color: #d3e4da; font-size: 13px; line-height: 1.85; }
+.journey { position: relative; width: 100%; max-width: 365px; height: 214px; margin-top: 32px; }
+.journeyPath { position: absolute; inset: 0; width: 100%; height: 100%; color: #85b098; }
+.journeyStop { position: absolute; display: flex; align-items: center; gap: 12px; width: 222px; border: 1px solid #ffffff25; border-radius: 11px; background: #246c57; padding: 12px 14px; box-shadow: 0 5px 13px #104b3b18; }
+.cards { top: 0; left: 0; }
+.visits { top: 76px; right: 0; }
+.closing { top: 152px; left: 22px; }
+.stopIcon { display: grid; place-items: center; width: 34px; height: 36px; color: #dff2aa; }
+.journeyStop strong { display: block; font-size: 12px; font-weight: 700; line-height: 1.5; }
+.journeyStop div > span { display: block; color: #d3e4da; font-size: 10px; line-height: 1.6; margin-top: 2px; }
+.access { min-width: 0; display: flex; align-items: center; padding: 52px 60px; }
+.accessInner { width: 100%; max-width: 390px; margin-inline: auto; }
+.accessEyebrow { display: flex; align-items: center; gap: 7px; color: var(--green); font-size: 10px; line-height: 1.5; font-weight: 750; letter-spacing: .1em; }
+.access h1 { margin-top: 21px; font-size: 36px; line-height: 1.2; letter-spacing: -.05em; font-weight: 750; text-wrap: balance; }
+.description { margin-top: 17px; color: var(--muted); font-size: 14px; line-height: 1.85; }
+.signIn { margin-top: 31px; }
+.accountNotice { display: flex; align-items: flex-start; gap: 11px; margin-top: 21px; border: 1px solid #e5ece6; border-radius: 10px; padding: 15px; background: #f4f7f5; color: var(--muted); }
+.accountNotice > svg { margin-top: 2px; color: var(--green); }
+.accountNotice > p { font-size: 13px; line-height: 1.8; }
+.help { margin-top: 28px; padding-top: 23px; border-top: 1px solid #e5ece6; }
+.help > p { font-size: 13px; font-weight: 750; }
+.help > span { display: block; margin-top: 6px; color: var(--muted); font-size: 13px; line-height: 1.85; }
+.footer { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding-top: 6px; padding-bottom: 25px; color: var(--muted); font-size: 12px; }
+.footer > a { display: inline-flex; align-items: center; gap: 5px; min-height: 44px; color: var(--muted); }
+.footer > a:hover { color: var(--green); text-decoration: underline; text-underline-offset: 4px; }
+.srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+@media (max-width: 1050px) {
+  .story { padding: 40px 32px 34px; }
+  .story h2 { font-size: 38px; }
+  .access { padding: 44px 36px; }
+  .access h1 { font-size: 34px; }
+  .journeyStop { width: 214px; gap: 9px; padding-inline: 11px; }
+}
+
+@media (max-width: 760px) {
+  .header { min-height: 88px; padding-inline: 24px; gap: 16px; }
+  .brand { gap: 8px; font-size: 21px; }
+  .brand img { width: 34px; height: 34px; border-radius: 9px; }
+  .backLink { gap: 7px; font-size: 12px; padding-left: 4px; }
+  .main { align-items: flex-start; padding: 6px 24px 20px; }
+  .shell { grid-template-columns: 1fr; max-width: 500px; min-height: auto; border-radius: 18px; }
+  .story { padding: 25px 30px 28px; }
+  .storyEyebrow { font-size: 10px; letter-spacing: .12em; }
+  .story h2 { margin-top: 13px; max-width: 340px; font-size: 31px; line-height: 1.15; }
+  .story h2 > br { display: none; }
+  .storyDescription, .journey { display: none; }
+  .access { padding: 30px; }
+  .accessInner { max-width: none; }
+  .accessEyebrow { font-size: 10px; }
+  .access h1 { margin-top: 15px; font-size: 30px; }
+  .description { margin-top: 13px; font-size: 14px; line-height: 1.8; }
+  .signIn { margin-top: 23px; }
+  .accountNotice { margin-top: 17px; padding: 13px; gap: 9px; }
+  .accountNotice > p { font-size: 12px; }
+  .help { margin-top: 23px; padding-top: 19px; }
+  .help > p { font-size: 12px; }
+  .help > span { margin-top: 4px; font-size: 12px; }
+  .footer { flex-wrap: wrap; justify-content: center; gap: 0 20px; padding: 0 24px 18px; font-size: 11px; text-align: center; }
+}
+
+@media (max-width: 390px) {
+  .header { min-height: 76px; padding-inline: 18px; gap: 8px; }
+  .brand { font-size: 17px; letter-spacing: -.6px; gap: 6px; }
+  .brand img { width: 30px; height: 30px; border-radius: 8px; }
+  .backLink { gap: 5px; font-size: 11px; }
+  .backLink > svg { width: 15px; }
+  .main { padding-inline: 16px; }
+  .story { padding: 22px 23px 24px; }
+  .story h2 { font-size: 28px; }
+  .access { padding: 27px 23px; }
+  .access h1 { font-size: 28px; }
+  .description { font-size: 14px; }
+}
