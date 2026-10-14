@@ -1,4 +1,4 @@
 # Configuración del servidor: debe coincidir con NEXT_PUBLIC_FIREBASE_PROJECT_ID.
-FIREBASE_PROJECT_ID=semancontrol-local
+FIREBASE_PROJECT_ID=semancontrolapp
 APP_ORIGIN=http://localhost:3000
 NEXTJS_ENV=development

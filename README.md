@@ -2,6 +2,8 @@
 
 SemanControl digitaliza tarjetas de fiado y recorridos de cobro. Las Fases 1–4 incluyen operación del trabajador, bodega/cierre/cartera del administrador y tarjeta del cliente. Next.js App Router, TypeScript, Tailwind, Firebase Google, Workers/OpenNext, D1 y R2 privado.
 
+La [landing comercial](docs/landing/README.md) está preparada en `/`, con demostración y contacto hacia ALS DevStudio; el acceso a la app sigue en `/login`. Su publicación está pendiente de revisión final del propietario.
+
 ## Qué incluye
 
 - Configuración ejecutable de Next.js y Workers, bindings tipados `DB`, `RECEIPTS_BUCKET` y límite de creación de sesiones.
@@ -36,6 +38,8 @@ pnpm preview
 `preview` usa normalmente `http://localhost:8787`. OpenNext avisa que el soporte Windows es parcial; se verifica el build y la ejecución local aquí. Para un pipeline de producción se recomienda Linux/WSL o CI Linux según [OpenNext](https://opennext.js.org/cloudflare).
 
 ## Configurar Google Sign-In real
+
+El proyecto enlazado es `semancontrolapp`, con app web `1:377945438832:web:766ea96b50ec272ab512b5` y dominio `semancontrolapp.firebaseapp.com`. Google y los dominios local/producción ya están configurados. Los archivos `.env.local`, `.env.production.local` y `.dev.vars` de esta máquina contienen la configuración; no se versionan. Para otra máquina, recupera los valores con `firebase apps:sdkconfig WEB 1:377945438832:web:766ea96b50ec272ab512b5 --project semancontrolapp` y sigue los pasos siguientes. La identidad usa Firebase; cartera, inventario y permisos permanecen en D1 y los comprobantes en R2. Firestore no se utiliza, por decisión del propietario.
 
 1. Crea o elige un proyecto Firebase, registra una app web y activa Authentication → Google.
 2. Autoriza `localhost` y, cuando exista, el dominio de producción en Firebase Authentication.
@@ -99,7 +103,7 @@ La limpieza elimina builds, cachés y temporales; conserva código, lockfile, co
 
 El entorno remoto se configura en `wrangler.production.toml`; `wrangler.toml` conserva la base local de desarrollo. La aplicación se publica en un Worker y el puente Pages conserva [semancontrol.pages.dev](https://semancontrol.pages.dev/). Los recursos D1/R2 remotos están separados de los datos sintéticos locales. Consulta [la guía de publicación](docs/deploy-cloudflare.md) para compilar, aplicar migraciones y desplegar con pnpm.
 
-La publicación inicial tiene **Google Sign-In pendiente**, por el límite de proyectos Firebase de la cuenta. El botón de acceso muestra ese estado y las pantallas privadas permanecen protegidas. No se ha cargado el seed en producción. Para habilitar acceso, configura un proyecto Firebase real, sus cuatro variables públicas de build y el mismo `FIREBASE_PROJECT_ID` en el Worker; vuelve a compilar y desplegar. El administrador inicial ya fue preautorizado en D1 con el correo confirmado por el propietario.
+**Google Sign-In está activo en producción desde el 14 de octubre de 2026.** El proyecto `semancontrolapp`, sus cuatro variables públicas y el `FIREBASE_PROJECT_ID` del Worker están enlazados. La publicación fue confirmada por el propietario y pasó 13 comprobaciones HTTP públicas, además de la revisión del acceso en Chrome. Google real y navegación ADMIN se comprobaron previamente en local. Las pantallas privadas permanecen protegidas. No se ha cargado el seed en producción; el administrador inicial ya fue preautorizado en D1 con el correo confirmado por el propietario. Consulta [la integración Firebase](docs/firebase-auth.md) para conocer la validación y el rollback.
 
 El favicon activo es la opción **3, Ruta**. Las [tres propuestas originales](docs/favicon-options/preview.html) están disponibles para comparar.
 

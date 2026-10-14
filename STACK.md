@@ -43,6 +43,19 @@ Referencias consultadas el 2026-10-14: [Workers](https://developers.cloudflare.c
 
 Medición final Fases 1–4: dry-run de Wrangler reportó **1504.13 KiB gzip** para el Worker y 40 assets. El tamaño por sí solo entra en Free. CPU y tráfico de producción aún no se midieron, por lo que el costo previsto sigue condicionado al uso. Una transferencia excepcional puede ocupar hasta 500 KB; con 500 comprobantes/mes en ese máximo serían aproximadamente 250 MB/mes, sin contar retención histórica. La estimación normal de 50 MB/mes utiliza 100 KB por comprobante.
 
+## Identidad de la landing comercial — 2026-10-14
+
+Portada pública en `/` para negocios que venden fiado y cobran en recorridos. CTA de demostración hacia `https://www.alsdevstudio.com/`, destino indicado por el propietario; el acceso operativo sigue en `/login`. Se promociona una demostración y puesta en marcha por negocio, sin inscripción automática ni precios publicados.
+
+Referencias de categoría: [Treinta](https://www.treinta.co/) por su presentación desde el celular, [Alegra Colombia](https://www.alegra.com/colombia/) por separar demostración y acceso, y [Siigo](https://www.siigo.com/) por explicar la incorporación al servicio. Se toman convenciones de estructura y claridad; textos y gráficos son propios.
+
+- Verde #155f4b conserva la marca y las acciones; tinta #17372d aporta contraste; superficie #f4f7f5 y blanco separan la narrativa del producto; lima #dff2aa destaca el recorrido y sus estados.
+- Manrope para titulares y texto comercial, con cifras tabulares en ejemplos. Se carga con `next/font` y se sirve desde el propio sitio, sin peticiones a fuentes de terceros al navegar. La app conserva su tipografía actual.
+- Composición: una portada editorial con una tarjeta de recorrido como firma visual; beneficios con divisores, una secuencia real de preparación/visita/cierre y preguntas desplegables.
+- Vista ilustrativa creada con HTML/CSS/SVG y datos ficticios, identificada explícitamente. No se usan capturas ni datos de producción.
+- Se evitan testimonios, métricas comerciales, precios y promesas de banco conectado, GPS o trabajo offline ilimitado. El texto explica la cola pendiente y la necesidad de conexión para ingresar/reabrir.
+- CSS limitado a la landing; metadata indexable solo en la portada. Se conserva el `noindex` predeterminado para las vistas de operación.
+
 ## Alcance implementado y límites de verificación
 
 Fases 1–4: operación atómica/idempotente, comprobantes privados, conciliación, cierres, QR firmado de 10 min/uso único, IndexedDB por UID/recorrido, PWA y las ocho pantallas. Login abre el destino del rol. La cola confirma con el servidor y mantiene incidencias tras cierre para una revisión administrativa; la compensación se registra y luego se referencia, sin volver a aplicar el cobro.

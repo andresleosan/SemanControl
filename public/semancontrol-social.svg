@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none" role="img" aria-labelledby="title description">
+  <title id="title">SemanControl — Tu recorrido de cobro, con las cuentas claras.</title>
+  <desc id="description">Presentación de SemanControl con una ilustración de tarjetas digitales y un recorrido, sin datos de clientes.</desc>
+  <defs>
+    <filter id="shadow" x="-40%" y="-25%" width="180%" height="175%">
+      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#153c30" flood-opacity=".12"/>
+    </filter>
+    <pattern id="grid" width="34" height="34" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="1" fill="#155f4b" fill-opacity=".1"/>
+    </pattern>
+  </defs>
+  <path fill="#f4f7f5" d="M0 0h1200v630H0z"/>
+  <path fill="#155f4b" d="M0 0h1200v10H0z"/>
+  <circle cx="1077" cy="312" r="295" fill="#e7eee8"/>
+  <path fill="url(#grid)" d="M713 48h443v536H713z"/>
+  <g font-family="Arial, Helvetica, sans-serif">
+    <g transform="translate(66 58)">
+      <rect width="46" height="46" rx="13" fill="#155f4b"/>
+      <rect x="10" y="10" width="24" height="18" rx="4" stroke="#dff2aa" stroke-width="2.3"/>
+      <path d="M14 29v6h24V18h-4M16 17h12M16 22h7" stroke="#dff2aa" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="61" y="32" font-size="30" font-weight="700" letter-spacing="-1" fill="#155f4b">SemanControl</text>
+    </g>
+    <rect x="66" y="156" width="284" height="30" rx="15" fill="#dff2aa"/>
+    <text x="83" y="176" font-size="11" font-weight="700" letter-spacing="1.6" fill="#155f4b">VENTA A CRÉDITO · COBRO EN RUTA</text>
+    <text x="63" y="258" font-size="58" font-weight="700" letter-spacing="-2.4" fill="#153e32">
+      <tspan x="63">Tu recorrido</tspan>
+      <tspan x="63" dy="68">de cobro, con</tspan>
+      <tspan x="63" dy="68">las cuentas claras.</tspan>
+    </text>
+    <text x="67" y="464" font-size="21" fill="#52665d">Tarjetas, abonos e inventario en un solo lugar.</text>
+    <path d="M67 525h561" stroke="#d3dfd7"/>
+    <text x="67" y="566" font-size="16" font-weight="700" fill="#155f4b">semancontrol.pages.dev</text>
+    <path d="m589 554 11 10-11 10m-14-10h24" stroke="#155f4b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M704 499c50 0 50-76 100-76h134c39 0 39-65 77-65h118" stroke="#83a394" stroke-width="3" stroke-linecap="round" stroke-dasharray="6 10"/>
+    <circle cx="704" cy="499" r="9" fill="#f4f7f5" stroke="#155f4b" stroke-width="3"/>
+    <circle cx="1133" cy="358" r="9" fill="#155f4b"/>
+    <g transform="translate(802 139) rotate(7 138 185)" filter="url(#shadow)">
+      <rect x="-16" y="-15" width="286" height="377" rx="23" fill="#dff2aa"/>
+      <rect width="286" height="377" rx="23" fill="white" stroke="#dce5de"/>
+      <path d="M0 23C0 10.3 10.3 0 23 0h240c12.7 0 23 10.3 23 23v76H0V23Z" fill="#155f4b"/>
+      <text x="23" y="35" font-size="11" font-weight="700" letter-spacing="1.7" fill="#dff2aa">TU TARJETA DIGITAL</text>
+      <text x="23" y="69" font-size="22" font-weight="700" fill="white">Todo en orden.</text>
+      <rect x="23" y="122" width="39" height="39" rx="12" fill="#edf4ed"/>
+      <path d="m34 141 7 7 12-15" stroke="#155f4b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="76" y="139" font-size="15" font-weight="700" fill="#153e32">Abono registrado</text>
+      <text x="76" y="159" font-size="12" fill="#64756c">Cada movimiento, a la vista</text>
+      <path d="M23 182h240" stroke="#e7ede8"/>
+      <rect x="23" y="203" width="39" height="39" rx="12" fill="#edf4ed"/>
+      <path d="M34 215h17v15H34zM39 211v8m7-8v8m-12 3h17" stroke="#155f4b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="76" y="220" font-size="15" font-weight="700" fill="#153e32">Historial organizado</text>
+      <text x="76" y="240" font-size="12" fill="#64756c">Sin perder el hilo de tu ruta</text>
+      <rect x="23" y="275" width="240" height="65" rx="13" fill="#f4f7f5"/>
+      <circle cx="46" cy="308" r="5" fill="#155f4b"/>
+      <text x="61" y="304" font-size="13" font-weight="700" fill="#153e32">Cuentas claras</text>
+      <text x="61" y="323" font-size="12" fill="#64756c">desde el celular</text>
+    </g>
+    <g transform="translate(1060 100)">
+      <circle cx="0" cy="0" r="39" fill="#dff2aa"/>
+      <path d="m-16 0 10 10 23-23" stroke="#155f4b" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+</svg>

@@ -12,8 +12,8 @@ enabled = true
 head_sampling_rate = 0.1
 
 [vars]
-# Identificador público. Sustituir por el proyecto Firebase real al configurar.
-FIREBASE_PROJECT_ID = "semancontrol-local"
+# Identificador público; coincide con el SDK web y producción.
+FIREBASE_PROJECT_ID = "semancontrolapp"
 # Origen público confiable: Next.js reconstruye internamente el URL en Workers.
 APP_ORIGIN = "http://localhost:3000"
 

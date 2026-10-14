@@ -17,7 +17,7 @@ async function authorization():Promise<string|null>{
   try {
     await auth.authStateReady();
     const user=auth.currentUser;
-    if(!user)return null;
+    if(!user)throw new ClientApiError(401,"AUTH_REQUIRED","Inicia sesión para continuar.");
     const token=await user.getIdToken();
     if(token!==cookieToken){
       const response=await fetch("/api/auth/session",{method:"POST",headers:{Authorization:`Bearer ${token}`},credentials:"same-origin",cache:"no-store"});

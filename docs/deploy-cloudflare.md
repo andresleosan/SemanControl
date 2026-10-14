@@ -4,13 +4,13 @@ La aplicación completa se ejecuta en un Worker OpenNext. El proyecto Pages `sem
 
 `wrangler.toml` sigue siendo la configuración local. `wrangler.production.toml` configura los recursos remotos; los scripts de producción siempre seleccionan ese archivo. No se aplica el seed sintético en producción ni se copia `.wrangler/state` a Cloudflare.
 
-## Configuración que se debe completar
+## Configuración activa
 
-Esta publicación tiene Google Sign-In pendiente por elección del operador. `vars.FIREBASE_PROJECT_ID=""` deja la autenticación sin configurar: el verificador rechaza los tokens con 503 `AUTH_NOT_CONFIGURED`, sin permitir acceso a datos privados. Los recursos Cloudflare ya están confirmados. Para habilitar Google después, establece el project ID real y completa las cuatro variables públicas antes de volver a compilar:
+Firebase Authentication está enlazado al proyecto `semancontrolapp`. La app web registrada es `1:377945438832:web:766ea96b50ec272ab512b5`; los TOML local y de producción usan ese mismo project ID. Las cuatro variables públicas están en `.env.local` y `.env.production.local`, ignorados por Git. Google está habilitado y los dominios `semancontrol.pages.dev`, `localhost` y `127.0.0.1` están autorizados en Firebase. El build revisado se publicó con confirmación del propietario el 14 de octubre de 2026: versión `022bea53-5fd5-4d63-831d-a7c6cac40dcd`, con 13 comprobaciones públicas correctas. No requirió migraciones ni volver a publicar el puente Pages.
 
 | Campo | Valor requerido |
 | --- | --- |
-| `vars.FIREBASE_PROJECT_ID` | ID del proyecto Firebase que emitirá los tokens. |
+| `vars.FIREBASE_PROJECT_ID` | `semancontrolapp`, proyecto que emite los tokens. |
 | `d1_databases.database_name` | `semancontrol-db`. |
 | `d1_databases.database_id` | UUID de esa misma base D1, ya configurado; nunca el identificador ficticio local. |
 | `r2_buckets.bucket_name` | `semancontrol-receipts`, con acceso público deshabilitado. |
@@ -31,11 +31,13 @@ NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
 NEXT_PUBLIC_FIREBASE_APP_ID=...
 ```
 
-Usa los valores de la app web Firebase real. El project ID debe coincidir con `FIREBASE_PROJECT_ID` del Worker. Mantén el authDomain proporcionado por Firebase; cambiarlo a `pages.dev` exigiría alojar/proxificar también los helpers de autenticación de Firebase.
+Usa los valores de la app web Firebase real. El project ID debe coincidir con `FIREBASE_PROJECT_ID` del Worker. El authDomain es `semancontrolapp.firebaseapp.com`; cambiarlo a `pages.dev` exigiría alojar/proxificar también los helpers de autenticación de Firebase. En otra máquina, recupera la configuración oficial con `firebase apps:sdkconfig WEB 1:377945438832:web:766ea96b50ec272ab512b5 --project semancontrolapp`; copia únicamente los cuatro campos públicos a los archivos locales o al entorno de build.
 
 En Firebase Authentication habilita Google y añade `semancontrol.pages.dev` a los dominios autorizados. El administrador inicial necesita un correo Google preautorizado en D1; no existe alta automática de administradores. Una autenticación Google correcta con correo desconocido devuelve 403.
 
-Mientras Google permanezca pendiente, publica sin esas variables y el botón de acceso debe permanecer deshabilitado con un mensaje claro. No configures tokens ficticios, un bypass ni una identidad de administrador en el navegador. Las variables `NEXT_PUBLIC_*` quedan incorporadas al JavaScript del navegador al compilar. Cambiarlas requiere un build nuevo. Los valores `[vars]` del TOML son la fuente de configuración runtime de este despliegue; no confiar en valores distintos del dashboard que el TOML pueda sobrescribir.
+Si falta cualquiera de esas variables, el botón de acceso permanece deshabilitado con un mensaje claro. No configures tokens ficticios, un bypass ni una identidad de administrador en el navegador. Las variables `NEXT_PUBLIC_*` quedan incorporadas al JavaScript del navegador al compilar. Cambiarlas requiere un build nuevo. Los valores `[vars]` del TOML son la fuente de configuración runtime de este despliegue; no confiar en valores distintos del dashboard que el TOML pueda sobrescribir.
+
+El propietario confirmó conservar D1/R2 y usar Firebase solo para identidad. Firestore existe en el proyecto pero la aplicación no lo consulta ni escribe; no requiere SDK Firestore, migraciones ni duplicar los datos comerciales. El ADMIN remoto ya está preautorizado y no se vuelve a ejecutar el seed.
 
 ## Verificar, preparar D1 y publicar
 

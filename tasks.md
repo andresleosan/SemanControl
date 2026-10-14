@@ -59,3 +59,28 @@ Solicitud posterior del propietario: subir a `andresleosan/SemanControl` y publi
 - Worker publicado, versión `3fad04e5-7cab-4762-ae3c-a6c87579d92a`. Pages publicado en el dominio solicitado; **13/13 comprobaciones HTTP públicas** correctas, incluidas redirecciones, permisos, Origin, sesión pendiente, cookie Secure, manifest, SW e iconos. Chrome muestra el acceso pendiente, logo cargado y cero errores JavaScript. [Captura de publicación](docs/deployment/login-publicado.png).
 - `FIREBASE_PROJECT_ID=""` impide validar cualquier token con 503 `AUTH_NOT_CONFIGURED`. El botón Google está deshabilitado si falta cualquiera de las cuatro variables públicas. Las pantallas privadas requieren habilitar Firebase y volver a compilar; no se probó Google real en esta publicación.
 - La limpieza conserva Git, fuente, datos locales y backups. `pnpm clean:all` retira dependencias, builds y temporales regenerables, incluido el temporal de Pages; el store compartido externo se conserva.
+
+## Integración Firebase — 2026-10-14
+
+- [x] Acceso verificado al proyecto `semancontrolapp`; app web registrada y SDK enlazado en desarrollo/build de producción.
+- [x] Google habilitado y dominios de Pages/desarrollo autorizados; configuración local ignorada y sin claves privadas.
+- [x] Propietario confirmó conservar D1/R2; Firestore no se usa y sus reglas actuales deniegan acceso.
+- [x] Corregida reutilización de cookie anterior cuando Firebase no tiene usuario, con regresión TDD y revisión independiente.
+- [x] 211 pruebas (173 Vitest + 34 SQLite + 4 puente), typecheck, lint, auditoría, build de producción, dry-run y 22 comprobaciones HTTP locales correctos.
+- [x] Google real confirmado por el propietario desde pestaña independiente; D1 local confirma ADMIN activo y UID enlazado. La herramienta Browser Use interfería con la prueba inicial; no requirió cambios adicionales del producto.
+- [x] Propietario confirmó publicar. `pnpm deploy:production` completado; versión activa `022bea53-5fd5-4d63-831d-a7c6cac40dcd` en `semancontrol.pages.dev`. Sin migraciones ni seed; puente Pages existente conservado.
+- [x] 13/13 comprobaciones HTTP públicas correctas; configuración Firebase real en los chunks y botón Google habilitado en Chrome, sin errores JS.
+- [x] Preview local cerrado y `pnpm clean:all` completado. Hashes confirman 31 archivos de persistencia local y tres archivos de configuración sin cambios; builds, temporales y dependencias regenerables retirados.
+
+Configuración, límites de evidencia y recuperación: [integración Firebase](docs/firebase-auth.md).
+
+## Landing comercial — 2026-10-14
+
+- [x] Portada pública para promocionar SemanControl, conservando `/login` como acceso a la aplicación.
+- [x] Destino comercial confirmado por el propietario: `https://www.alsdevstudio.com/`.
+- [x] Vista ilustrativa ficticia, beneficios, recorrido completo, roles, FAQ, SEO e imagen para compartir. Sin cambios en datos ni migraciones.
+- [x] 211 pruebas existentes, TypeScript, lint, auditoría y build de producción correctos. Dry-run: 50 assets, 1502,42 KiB gzip.
+- [x] HTTP local 9/9 de marketing y 22/22 del smoke existente; cinco anchos móviles/escritorio, contraste, FAQ y enlaces internos revisados. Capturas y revisión independiente registradas.
+- [ ] Confirmación final de publicación y limpieza posterior.
+
+[Revisión de la landing y capturas](docs/landing/README.md).

@@ -52,3 +52,11 @@ Durante la implementación esta suite detectó dos formularios con desborde hori
 También reprodujo una respuesta atrasada que vaciaba el selector y las tarjetas en Mi ruta. Los contadores de solicitudes en ruta/cuadre y la lista de recorridos conservada por UID evitan que esa respuesta reemplace la selección actual.
 
 Última verificación local: **14 de octubre de 2026, 7 de 7 pruebas aprobadas**, comando anterior, exit code 0, duración 15,36 s. Esto confirma los escenarios de esta fixture; no constituye una validación de Google Sign-In ni un despliegue a producción.
+
+## Google real — 14 de octubre de 2026
+
+Después de enlazar `semancontrolapp`, el propietario completó Google Sign-In desde una pestaña independiente sin Browser Use. El Worker compilado local confirmó `POST /api/auth/session` 200; D1 enlazó el UID del ADMIN preautorizado. Navegación y APIs de Cierre, Bodega y Tarjetas respondieron 200. La primera prueba en una pestaña automatizada quedó detenida al retornar a Firebase; la herramienta informó una respuesta de documento pausada y el problema desapareció al completar el acceso fuera de ese control. No se cambió el flujo del producto para resolverlo.
+
+Esta comprobación cubre identidad real y navegación ADMIN en local. No demuestra todavía un acceso en el dominio público actualizado ni una prueba manual de cierre/renovación; estos últimos conservan su cobertura automatizada.
+
+Tras la confirmación de publicación se verificó `https://semancontrol.pages.dev/login` en Chrome: botón Google habilitado y cero errores JS. Se completaron 13/13 comprobaciones HTTP públicas de configuración Firebase, permisos, Origin, cookie Secure y recursos PWA. Versión publicada: `022bea53-5fd5-4d63-831d-a7c6cac40dcd`. No se repitió el consentimiento Google dentro de Browser Use; el propietario puede acceder desde su pestaña normal.

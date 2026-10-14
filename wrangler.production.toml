@@ -1,6 +1,5 @@
 # Production is separate from wrangler.toml and its local D1/R2 state.
-# Google sign-in is pending. Set the real Firebase project ID together with
-# its public client configuration when authentication is enabled.
+# Firebase Google sign-in uses the same project as the public web SDK build.
 name = "semancontrol"
 account_id = "05fb22c155667de064b55c4e287b21d8"
 main = ".open-next/worker.js"
@@ -18,7 +17,7 @@ enabled = true
 head_sampling_rate = 0.1
 
 [vars]
-FIREBASE_PROJECT_ID = ""
+FIREBASE_PROJECT_ID = "semancontrolapp"
 APP_ORIGIN = "https://semancontrol.pages.dev"
 NEXTJS_ENV = "production"
 
