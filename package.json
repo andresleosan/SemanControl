@@ -1,0 +1,57 @@
+{
+  "name": "semancontrol",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.23.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "build:worker": "opennextjs-cloudflare build",
+    "preview": "opennextjs-cloudflare preview --var APP_ORIGIN:http://127.0.0.1:8787",
+    "deploy": "opennextjs-cloudflare deploy",
+    "cf:typegen": "wrangler types --env-interface CloudflareEnv --strict-vars false cloudflare-env.d.ts",
+    "db:migrate": "wrangler d1 migrations apply semancontrol-db --local",
+    "db:seed": "wrangler d1 execute semancontrol-db --local --file seed.sql",
+    "test": "vitest run",
+    "test:db": "python -m unittest discover -s tests -p test_schema.py -v",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "clean": "node scripts/clean.mjs",
+    "clean:all": "node scripts/clean.mjs --dependencies",
+    "verify": "pnpm test && pnpm test:db && pnpm typecheck && pnpm lint && pnpm build:worker"
+  },
+  "dependencies": {
+    "@opennextjs/cloudflare": "1.20.11",
+    "firebase": "13.0.0",
+    "jose": "6.2.12",
+    "lucide-react": "1.56.0",
+    "next": "16.3.8",
+    "qrcode": "1.5.4",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "server-only": "0.0.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.64.0",
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "^24.0.0",
+    "@types/qrcode": "1.5.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "esbuild": "0.28.2",
+    "eslint": "10.12.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "miniflare": "5.20261012.0-beta",
+    "tailwindcss": "4.3.3",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "8.71.2",
+    "vitest": "5.0.4",
+    "wrangler": "4.151.0"
+  }
+}

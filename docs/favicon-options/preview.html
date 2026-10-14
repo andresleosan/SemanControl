@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SemanControl · opciones de favicon</title>
+  <style>
+    :root { color-scheme: light; font-family: Arial, system-ui, sans-serif; color: #172b3a; background: #f3f6f8; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    main { max-width: 1080px; margin: 0 auto; padding: 40px 36px 32px; }
+    .brand { margin: 0 0 12px; font-size: 14px; font-weight: 700; letter-spacing: .02em; color: #155f4b; }
+    h1 { margin: 0 0 12px; font-size: clamp(26px, 4vw, 34px); line-height: 1.1; letter-spacing: -.025em; }
+    .intro { margin: 0; font-size: 15px; line-height: 1.5; color: #405766; }
+    .options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; margin-top: 28px; }
+    .option { padding: 24px; background: #fff; border: 1px solid #dce5e9; border-radius: 18px; }
+    h2 { margin: 0 0 8px; font-size: 20px; line-height: 1.2; }
+    .description { min-height: 48px; margin: 0; font-size: 14px; line-height: 1.45; color: #405766; }
+    figure { margin: 0; }
+    .hero { display: grid; justify-items: center; gap: 12px; padding: 28px 0 24px; }
+    img { display: block; }
+    figcaption, .size { color: #405766; font-size: 12px; font-variant-numeric: tabular-nums; }
+    .sizes { display: flex; align-items: flex-end; justify-content: center; gap: 30px; min-height: 108px; padding: 14px 0 20px; border-top: 1px solid #e4ebee; border-bottom: 1px solid #e4ebee; }
+    .sample { display: grid; justify-items: center; gap: 10px; }
+    .context-label { margin: 20px 0 10px; font-size: 12px; color: #405766; }
+    .tab { display: flex; align-items: center; gap: 9px; height: 38px; padding: 0 12px; border-radius: 8px 8px 0 0; font-size: 12px; }
+    .tab.light { background: #eef2f4; color: #172b3a; }
+    .tab.dark { margin-top: 8px; background: #27353d; color: #fff; }
+    .close { margin-left: auto; font-size: 15px; opacity: .65; }
+    .note { margin: 22px 0 0; color: #405766; font-size: 13px; line-height: 1.45; }
+    @media (max-width: 760px) { main { padding: 28px 20px; } .options { grid-template-columns: 1fr; } .description { min-height: 0; } }
+    @media print { main { padding: 0; } .option { break-inside: avoid; } }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="brand">SemanControl</p>
+    <h1>Tres opciones de favicon</h1>
+    <p class="intro">Un símbolo claro para reconocer la aplicación, incluso en una pestaña pequeña.</p>
+    <section class="options" aria-label="Comparación de las tres opciones">
+      <article class="option">
+        <h2>1 · Tarjeta</h2>
+        <p class="description">La tarjeta del cliente y una operación confirmada.</p>
+        <figure class="hero"><img src="1-tarjeta.svg" width="128" height="128" alt="Tarjeta blanca con check verde"><figcaption>128 px</figcaption></figure>
+        <div class="sizes" aria-label="Tamaños reales">
+          <figure class="sample"><img src="1-tarjeta.svg" width="16" height="16" alt="Opción 1 a 16 píxeles"><figcaption>16 px</figcaption></figure>
+          <figure class="sample"><img src="1-tarjeta.svg" width="32" height="32" alt="Opción 1 a 32 píxeles"><figcaption>32 px</figcaption></figure>
+          <figure class="sample"><img src="1-tarjeta.svg" width="64" height="64" alt="Opción 1 a 64 píxeles"><figcaption>64 px</figcaption></figure>
+        </div>
+        <p class="context-label">En una pestaña · 16 px</p>
+        <div class="tab light"><img src="1-tarjeta.svg" width="16" height="16" alt="">SemanControl<span class="close" aria-hidden="true">×</span></div>
+        <div class="tab dark"><img src="1-tarjeta.svg" width="16" height="16" alt="">SemanControl<span class="close" aria-hidden="true">×</span></div>
+      </article>
+      <article class="option">
+        <h2>2 · SC</h2>
+        <p class="description">Las iniciales de SemanControl, con formas geométricas.</p>
+        <figure class="hero"><img src="2-sc.svg" width="128" height="128" alt="Monograma geométrico SC en blanco"><figcaption>128 px</figcaption></figure>
+        <div class="sizes" aria-label="Tamaños reales">
+          <figure class="sample"><img src="2-sc.svg" width="16" height="16" alt="Opción 2 a 16 píxeles"><figcaption>16 px</figcaption></figure>
+          <figure class="sample"><img src="2-sc.svg" width="32" height="32" alt="Opción 2 a 32 píxeles"><figcaption>32 px</figcaption></figure>
+          <figure class="sample"><img src="2-sc.svg" width="64" height="64" alt="Opción 2 a 64 píxeles"><figcaption>64 px</figcaption></figure>
+        </div>
+        <p class="context-label">En una pestaña · 16 px</p>
+        <div class="tab light"><img src="2-sc.svg" width="16" height="16" alt="">SemanControl<span class="close" aria-hidden="true">×</span></div>
+        <div class="tab dark"><img src="2-sc.svg" width="16" height="16" alt="">SemanControl<span class="close" aria-hidden="true">×</span></div>
+      </article>
+      <article class="option">
+        <h2>3 · Ruta</h2>
+        <p class="description">Tres visitas conectadas en el recorrido de la semana.</p>
+        <figure class="hero"><img src="3-ruta.svg" width="128" height="128" alt="Ruta blanca con tres puntos conectados"><figcaption>128 px</figcaption></figure>
+        <div class="sizes" aria-label="Tamaños reales">
+          <figure class="sample"><img src="3-ruta.svg" width="16" height="16" alt="Opción 3 a 16 píxeles"><figcaption>16 px</figcaption></figure>
+          <figure class="sample"><img src="3-ruta.svg" width="32" height="32" alt="Opción 3 a 32 píxeles"><figcaption>32 px</figcaption></figure>
+          <figure class="sample"><img src="3-ruta.svg" width="64" height="64" alt="Opción 3 a 64 píxeles"><figcaption>64 px</figcaption></figure>
+        </div>
+        <p class="context-label">En una pestaña · 16 px</p>
+        <div class="tab light"><img src="3-ruta.svg" width="16" height="16" alt="">SemanControl<span class="close" aria-hidden="true">×</span></div>
+        <div class="tab dark"><img src="3-ruta.svg" width="16" height="16" alt="">SemanControl<span class="close" aria-hidden="true">×</span></div>
+      </article>
+    </section>
+    <p class="note">Las tres mantienen el verde #155f4b de la aplicación. Estas opciones todavía no cambian el favicon activo.</p>
+  </main>
+</body>
+</html>

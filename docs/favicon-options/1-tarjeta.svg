@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>SemanControl: tarjeta con un check</title>
+  <rect width="64" height="64" rx="14" fill="#155f4b"/>
+  <rect x="12" y="14" width="40" height="36" rx="7" fill="#ffffff"/>
+  <path d="m22 32 7 7 14-15" fill="none" stroke="#155f4b" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

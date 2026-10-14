@@ -1,0 +1,4 @@
+import QRCode from "qrcode";
+import {apiRoute,text} from "@/lib/api";
+import {ApiError} from "@/lib/security/errors";
+export function GET(request:Request){return apiRoute(request,["WORKER","ADMIN"],async(env)=>{const data=text(new URL(request.url).searchParams.get("data"),"el vínculo",2200);let url:URL;try{url=new URL(data);}catch{throw new ApiError(400,"INVALID_LINK","El vínculo no es válido.");}if(url.origin!==new URL(env.APP_ORIGIN).origin||url.pathname!=="/vincular"||!new URLSearchParams(url.hash.slice(1)).get("token"))throw new ApiError(400,"INVALID_LINK","El vínculo no es válido.");const svg=await QRCode.toString(data,{type:"svg",errorCorrectionLevel:"M",margin:4,width:320});return new Response(svg,{headers:{"Content-Type":"image/svg+xml","Content-Security-Policy":"default-src 'none'; style-src 'unsafe-inline'","Cross-Origin-Resource-Policy":"same-origin"}});});}

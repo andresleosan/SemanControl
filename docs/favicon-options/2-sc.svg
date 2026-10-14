@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>SemanControl: monograma SC</title>
+  <rect width="64" height="64" rx="14" fill="#155f4b"/>
+  <g fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round">
+    <path d="M26 20H17a6 6 0 0 0 0 12h3a6 6 0 0 1 0 12H11"/>
+    <path d="M54 21H47a11 11 0 0 0 0 22H54"/>
+  </g>
+</svg>

@@ -1,0 +1,23 @@
+# Solo el paquete raíz. Las dependencias se comparten con el store de pnpm.
+# OpenNext en Windows no copia correctamente algunos enlaces del layout isolated.
+nodeLinker: hoisted
+packageImportMethod: hardlink
+
+overrides:
+  '@grpc/grpc-js': 1.14.6
+  '@node-minify/core>glob': 10.5.0
+
+allowBuilds:
+  '@firebase/util@1.15.3': true
+  esbuild@0.28.2: true
+  protobufjs@7.6.6: true
+  workerd@1.20261012.1: true
+
+# Las tareas no descargan dependencias de manera implícita.
+verifyDepsBeforeRun: error
+
+minimumReleaseAgeExclude:
+  - '@opennextjs/aws@4.1.10'
+  - '@opennextjs/cloudflare@1.20.11'
+  - miniflare@5.20261012.0-beta
+  - wrangler@4.151.0
