@@ -102,6 +102,12 @@ La integración nativa de Workers Builds está conectada a `andresleosan/SemanCo
 
 Las cuatro variables públicas de Firebase ya están configuradas en el entorno de build. Las variables del build y las variables runtime son independientes. Ambos comandos seleccionan `wrangler.production.toml` y no ejecutan migraciones D1 ni seed. Los cambios de esquema mantienen el procedimiento de backup, revisión y publicación acordada descrito arriba.
 
+Antes de publicar, `pnpm deploy:production` ejecuta `scripts/check-production-schema.mjs`: consulta únicamente los nombres de `d1_migrations` mediante el Wrangler instalado y la configuración de producción, y los compara con los archivos SQL locales. Si falta una migración, bloquea el despliegue y muestra sus nombres. También bloquea si no puede autenticarse, falla la consulta o la respuesta no es válida; no imprime los diagnósticos crudos de Wrangler. El token de Workers Builds necesita acceso de lectura a esa consulta D1 además de sus permisos de despliegue.
+
+Si el guard bloquea por esquema pendiente, revisar las migraciones y disponer de un respaldo verificado; aplicar las migraciones por el procedimiento acordado y volver a ejecutar el despliegue o reintentar el build. El guard nunca modifica D1 ni ejecuta seed. Puede comprobarse por separado con `node scripts/check-production-schema.mjs`. Así, un push con nuevas dependencias de esquema no publica código incompatible con la base existente.
+
+El 14 de octubre de 2026 se aplicaron en producción `0004_product_categories.sql` y `0005_opening_items.sql`, con autorización del propietario y tras verificar un respaldo privado. La comprobación de integridad fue correcta, sin infracciones de claves foráneas ni migraciones pendientes. Las consultas autenticadas de inventario, cierre e historial volvieron a responder HTTP 200. El guard confirmó las cinco migraciones aplicadas.
+
 Pages permanece sin conexión Git y su puente se publica manualmente desde `deploy/pages` con su propio TOML. Los cambios habituales de la aplicación solo actualizan el Worker. Coordina ambos despliegues si cambia el nombre del Worker o el contrato del puente. El rollback se realiza manualmente sobre la versión anterior del Worker; no revierte datos D1/R2.
 
 Para verificar el flujo, comprueba que el push a `main` genera un build con el mismo commit, termina con un despliegue correcto y mantiene `/login` en HTTP 200 y `/admin/cierre` sin sesión redirigiendo al acceso. La conexión guardada por sí sola no confirma que el pipeline haya terminado correctamente.

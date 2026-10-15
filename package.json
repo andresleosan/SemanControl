@@ -15,7 +15,7 @@
     "build:production": "opennextjs-cloudflare build --config wrangler.production.toml",
     "preview": "opennextjs-cloudflare preview --var APP_ORIGIN:http://127.0.0.1:8787",
     "deploy": "opennextjs-cloudflare deploy",
-    "deploy:production": "opennextjs-cloudflare deploy --config wrangler.production.toml",
+    "deploy:production": "node scripts/check-production-schema.mjs && opennextjs-cloudflare deploy --config wrangler.production.toml",
     "deploy:pages": "node deploy/pages/run-wrangler.mjs deploy public --project-name semancontrol --branch main",
     "check:pages": "node deploy/pages/run-wrangler.mjs functions build --build-output-directory public --outdir ../../.wrangler/tmp/pages-bridge",
     "cf:typegen": "wrangler types --env-interface CloudflareEnv --strict-vars false cloudflare-env.d.ts",
