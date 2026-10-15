@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from "next";
+import { Manrope } from "next/font/google";
 import "./globals.css";
 import PwaRegistration from "@/components/pwa-registration";
+
+const appFont = Manrope({ subsets: ["latin"], variable: "--font-app", display: "swap" });
 
 export const metadata: Metadata = {
   title: "SemanControl",
@@ -11,5 +14,5 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#155f4b" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="es-CO"><body>{children}<PwaRegistration /></body></html>;
+  return <html lang="es-CO" className={appFont.variable}><body>{children}<PwaRegistration /></body></html>;
 }

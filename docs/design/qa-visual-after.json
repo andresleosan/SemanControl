@@ -1,0 +1,260 @@
+[
+  {
+    "stage": "after",
+    "label": "admin-inventory",
+    "width": 390,
+    "overflow": false,
+    "errors": [],
+    "colors": {
+      "brand": "rgb(21, 95, 75)",
+      "body": "rgb(244, 247, 245)",
+      "font": "Manrope, Helvetica, sans-serif"
+    },
+    "tables": [
+      {
+        "width": 320,
+        "scroll": 320
+      }
+    ],
+    "nav": 1,
+    "footer": 0
+  },
+  {
+    "stage": "after",
+    "label": "admin-inventory",
+    "width": 1440,
+    "overflow": false,
+    "errors": [],
+    "colors": {
+      "brand": "rgb(21, 95, 75)",
+      "body": "rgb(244, 247, 245)",
+      "font": "Manrope, Helvetica, sans-serif"
+    },
+    "tables": [
+      {
+        "width": 1098,
+        "scroll": 1098
+      }
+    ],
+    "nav": 1,
+    "footer": 0
+  },
+  {
+    "stage": "after",
+    "label": "admin-clients",
+    "width": 390,
+    "overflow": false,
+    "errors": [],
+    "colors": {
+      "brand": "rgb(21, 95, 75)",
+      "body": "rgb(244, 247, 245)",
+      "font": "Manrope, Helvetica, sans-serif"
+    },
+    "tables": [
+      {
+        "width": 320,
+        "scroll": 320
+      }
+    ],
+    "nav": 1,
+    "footer": 0
+  },
+  {
+    "stage": "after",
+    "label": "admin-clients",
+    "width": 1440,
+    "overflow": false,
+    "errors": [],
+    "colors": {
+      "brand": "rgb(21, 95, 75)",
+      "body": "rgb(244, 247, 245)",
+      "font": "Manrope, Helvetica, sans-serif"
+    },
+    "tables": [
+      {
+        "width": 1098,
+        "scroll": 1098
+      }
+    ],
+    "nav": 1,
+    "footer": 0
+  },
+  {
+    "stage": "after",
+    "label": "admin-closure",
+    "width": 390,
+    "overflow": false,
+    "errors": [],
+    "colors": {
+      "brand": "rgb(21, 95, 75)",
+      "body": "rgb(244, 247, 245)",
+      "font": "Manrope, Helvetica, sans-serif"
+    },
+    "tables": [
+      {
+        "width": 320,
+        "scroll": 320
+      },
+      {
+        "width": 320,
+        "scroll": 320
+      }
+    ],
+    "nav": 1,
+    "footer": 0
+  },
+  {
+    "stage": "after",
+    "label": "admin-closure",
+    "width": 1440,
+    "overflow": false,
+    "errors": [],
+    "colors": {
+      "brand": "rgb(21, 95, 75)",
+      "body": "rgb(244, 247, 245)",
+      "font": "Manrope, Helvetica, sans-serif"
+    },
+    "tables": [
+      {
+        "width": 1098,
+        "scroll": 1098
+      },
+      {
+        "width": 1098,
+        "scroll": 1098
+      }
+    ],
+    "nav": 1,
+    "footer": 0
+  },
+  {
+    "stage": "after",
+    "label": "worker-route",
+    "width": 390,
+    "overflow": false,
+    "errors": [],
+    "colors": {
+      "brand": "rgb(21, 95, 75)",
+      "body": "rgb(244, 247, 245)",
+      "font": "Manrope, Helvetica, sans-serif"
+    },
+    "tables": [],
+    "nav": 1,
+    "footer": 0
+  },
+  {
+    "stage": "after",
+    "label": "worker-route",
+    "width": 1440,
+    "overflow": false,
+    "errors": [],
+    "colors": {
+      "brand": "rgb(21, 95, 75)",
+      "body": "rgb(244, 247, 245)",
+      "font": "Manrope, Helvetica, sans-serif"
+    },
+    "tables": [],
+    "nav": 1,
+    "footer": 0
+  },
+  {
+    "stage": "after",
+    "label": "worker-visit",
+    "width": 390,
+    "overflow": false,
+    "errors": [],
+    "colors": {
+      "brand": "rgb(21, 95, 75)",
+      "body": "rgb(244, 247, 245)",
+      "font": "Manrope, Helvetica, sans-serif"
+    },
+    "tables": [],
+    "nav": 1,
+    "footer": 1
+  },
+  {
+    "stage": "after",
+    "label": "worker-visit",
+    "width": 1440,
+    "overflow": false,
+    "errors": [],
+    "colors": {
+      "brand": "rgb(21, 95, 75)",
+      "body": "rgb(244, 247, 245)",
+      "font": "Manrope, Helvetica, sans-serif"
+    },
+    "tables": [],
+    "nav": 1,
+    "footer": 1
+  },
+  {
+    "stage": "after",
+    "label": "worker-summary",
+    "width": 390,
+    "overflow": false,
+    "errors": [],
+    "colors": {
+      "brand": "rgb(21, 95, 75)",
+      "body": "rgb(244, 247, 245)",
+      "font": "Manrope, Helvetica, sans-serif"
+    },
+    "tables": [
+      {
+        "width": 320,
+        "scroll": 320
+      }
+    ],
+    "nav": 1,
+    "footer": 0
+  },
+  {
+    "stage": "after",
+    "label": "worker-summary",
+    "width": 1440,
+    "overflow": false,
+    "errors": [],
+    "colors": {
+      "brand": "rgb(21, 95, 75)",
+      "body": "rgb(244, 247, 245)",
+      "font": "Manrope, Helvetica, sans-serif"
+    },
+    "tables": [
+      {
+        "width": 858,
+        "scroll": 858
+      }
+    ],
+    "nav": 1,
+    "footer": 0
+  },
+  {
+    "stage": "after",
+    "label": "client-account",
+    "width": 390,
+    "overflow": false,
+    "errors": [],
+    "colors": {
+      "brand": "rgb(21, 95, 75)",
+      "body": "rgb(244, 247, 245)",
+      "font": "Manrope, Helvetica, sans-serif"
+    },
+    "tables": [],
+    "nav": 0,
+    "footer": 0
+  },
+  {
+    "stage": "after",
+    "label": "client-account",
+    "width": 1440,
+    "overflow": false,
+    "errors": [],
+    "colors": {
+      "brand": "rgb(21, 95, 75)",
+      "body": "rgb(244, 247, 245)",
+      "font": "Manrope, Helvetica, sans-serif"
+    },
+    "tables": [],
+    "nav": 0,
+    "footer": 0
+  }
+]

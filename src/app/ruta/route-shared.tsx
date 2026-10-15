@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { CloudOff, RefreshCw } from "lucide-react";
-import { Notice, Money } from "@/components/ui";
+import { Badge, Notice, Money } from "@/components/ui";
 import type { ClientCard, Movement, RouteProduct } from "@/lib/contracts";
 import type { QueueRecord } from "@/lib/offline/queue";
 import { routeQueue } from "@/lib/offline/storage";
@@ -59,8 +59,21 @@ export function useQueue(uid: string | undefined, dispatch: string, onSynchroniz
 export function QueueStatus({ rows, busy, online, onSync }: { rows: QueueRecord[]; busy: boolean; online: boolean; onSync: () => void }) {
   const active = rows.filter((row) => row.state !== "registered" && !row.resolved_by);
   if (!active.length && online) return null;
-  return <Notice><div className="sc-actions">{!online && <CloudOff size={20} />}<span>{active.length ? `${active.length} visita${active.length === 1 ? "" : "s"} pendiente${active.length === 1 ? "" : "s"} de sincronizar` : "Sin conexión"}. Los saldos y la carga mostrados son la última consulta; no aseguran disponibilidad.</span><button type="button" className="sc-button sc-button-secondary" disabled={busy || !online} onClick={onSync}><RefreshCw size={18} />{busy ? "Sincronizando…" : "Sincronizar"}</button></div></Notice>;
+  const pending = active.filter((row) => row.state === "pending" && !row.reported_incident).length;
+  const review = active.filter((row) => row.state === "conflict" && !row.reported_incident).length;
+  const reported = active.filter((row) => !!row.reported_incident).length;
+  return <Notice tone={!online || review ? "warning" : "info"}><div className="sc-queue-status"><div>
+    <strong className="sc-actions">{!online && <CloudOff size={20} aria-hidden="true" />}{!online ? "Sin conexión · visitas conservadas" : "Estado de tus visitas"}</strong>
+    <div className="sc-actions" style={{ marginBlock: 8 }}>
+      {pending > 0 && <Badge tone="warning">{pending} visita{pending === 1 ? "" : "s"} pendiente{pending === 1 ? "" : "s"} de sincronizar</Badge>}
+      {review > 0 && <Badge tone="error">{review} requiere{review === 1 ? "" : "n"} revisión</Badge>}
+      {reported > 0 && <Badge tone="info">{reported} en revisión del administrador</Badge>}
+    </div>
+    <p>Los saldos y la carga mostrados son la última consulta; no aseguran disponibilidad.</p>
+    {review > 0 && <p>Abre la tarjeta para revisar el cobro y la entrega conservados.</p>}
+  </div><button type="button" className="sc-button sc-button-secondary" disabled={busy || !online} onClick={onSync}><RefreshCw size={18} aria-hidden="true" />{busy ? "Sincronizando…" : "Sincronizar"}</button></div></Notice>;
 }
 export function PendingDetail({ row }: { row: QueueRecord }) {
-  return <div className="sc-panel"><span className="sc-badge">{row.state === "registered" ? "Registrada" : row.reported_incident ? "Enviada al administrador; pendiente de revisión" : row.state === "conflict" ? "Requiere revisión" : "Pendiente de sincronizar"}</span><p className="sc-muted">{new Date(row.created_at).toLocaleString("es-CO", { timeZone: "America/Bogota" })}</p><p>Abono físico: <Money value={row.payload.payment_amount} /> · {row.payload.payment_method === "TRANSFER" ? "Transferencia pendiente de banco" : row.payload.payment_method === "CASH" ? "Efectivo" : "Sin abono"}</p>{row.payload.items.length > 0 && <p>Productos entregados: {row.payload.items.map((item) => `${item.qty} unidades`).join(", ")}</p>}{row.error && <p role="alert">{row.error}</p>}{row.resolved_by && <p className="sc-muted">Conservamos esta incidencia junto a su nueva confirmación.</p>}{row.reported_incident && <p className="sc-muted">Referencia de incidencia: {row.reported_incident}</p>}<small className="sc-muted">Referencia de operación: {row.payload.idempotency_key}</small></div>;
+  const tone = row.state === "registered" ? "success" : row.resolved_by ? "neutral" : row.reported_incident ? "info" : row.state === "conflict" ? "error" : "warning";
+  return <div className="sc-panel sc-pending-detail"><Badge tone={tone}>{row.state === "registered" ? "Registrada" : row.resolved_by ? "Incidencia con nueva confirmación" : row.reported_incident ? "Enviada al administrador; pendiente de revisión" : row.state === "conflict" ? "Requiere revisión" : "Pendiente de sincronizar"}</Badge><p className="sc-muted">{new Date(row.created_at).toLocaleString("es-CO", { timeZone: "America/Bogota" })}</p><p>Abono físico: <Money value={row.payload.payment_amount} /> · {row.payload.payment_method === "TRANSFER" ? "Transferencia pendiente de banco" : row.payload.payment_method === "CASH" ? "Efectivo" : "Sin abono"}</p>{row.payload.items.length > 0 && <p>Productos entregados: {row.payload.items.map((item) => `${item.qty} unidades`).join(", ")}</p>}{row.error && <p role="alert">{row.error}</p>}{row.resolved_by && <p className="sc-muted">Conservamos esta incidencia junto a su nueva confirmación.</p>}{row.reported_incident && <p className="sc-operation-reference sc-muted">Referencia de incidencia: {row.reported_incident}</p>}<small className="sc-operation-reference sc-muted">Referencia de operación: {row.payload.idempotency_key}</small></div>;
 }

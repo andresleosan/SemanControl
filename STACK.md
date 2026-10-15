@@ -56,6 +56,12 @@ Referencias de categoría: [Treinta](https://www.treinta.co/) por su presentaci�
 - Se evitan testimonios, métricas comerciales, precios y promesas de banco conectado, GPS o trabajo offline ilimitado. El texto explica la cola pendiente y la necesidad de conexión para ingresar/reabrir.
 - CSS limitado a la landing; metadata indexable solo en la portada. Se conserva el `noindex` predeterminado para las vistas de operación.
 
+## Identidad de las áreas operativas — 2026-10-14
+
+Administración, trabajador y cliente comparten Manrope autoalojada, verde `#155f4b`, tinta `#17372d`, fondo `#f4f7f5` y superficies blancas. El número físico de tarjeta sigue siendo el ancla; los importes usan cifras tabulares. Administración conserva contexto lateral en escritorio y fichas etiquetadas en móvil; el trabajador tiene navegación inferior y una barra financiera propia durante atención; el cliente prioriza su saldo e historial por fecha de Bogotá.
+
+Benchmark con MCP de Mobbin: [Airtable](https://mobbin.com/screens/1ccf6613-4abd-420f-9d18-ac7b40a04848) para navegación/filtros, [Asana](https://mobbin.com/screens/04f565e9-e2d7-4dc0-bbda-35d6d8fb8200) para trabajo por estado, [YNAB](https://mobbin.com/screens/5bd8e423-cf79-45c2-b12c-a68d5ccfce0d) para saldo y movimientos. Se extraen convenciones de UX sin copiar assets o textos. Los estados distinguen pendiente, revisión, confirmado, rechazado y neutro con texto y color. [Análisis, capturas y verificación](docs/design/README.md).
+
 ## Alcance implementado y límites de verificación
 
 El acceso `/login` comparte la identidad de la landing: panel de recorrido propio en SVG, acceso separado y dos enlaces a `/` (marca y «Volver al inicio»). La composición pasa a una columna compacta en móvil. Manrope y Google Sans 500 se sirven con `next/font`; este último se limita al botón de Google. El icono local `public/google-g.png` procede de [Google Identity](https://developers.google.com/static/identity/images/g-logo.png), conforme a sus [guías de marca](https://developers.google.com/identity/branding-guidelines) consultadas el 2026-10-14. El rediseño no cambia SDK, sesión, permisos, almacenamiento ni metadata de indexación.

@@ -1,5 +1,15 @@
 # SemanControl — tareas
 
+## Revisión y mejora visual de los tres roles — 2026-10-14
+
+- [x] Auditoría de administración, trabajador y cliente contra la especificación; benchmark con MCP de Mobbin y mejoras locales aplicadas.
+- [x] Navegación por contexto, tablas administrativas móviles, conciliación filtrable, ruta/progreso, cuadre confirmado/local y tarjeta/historial del cliente.
+- [x] `pnpm verify`: 179 Vitest + 34 SQLite + 4 Pages (217 pruebas), TypeScript, lint y build pasan. Suite de navegador final 7/7 y rebuild posterior a ajustes pasan; auditoría sin vulnerabilidades conocidas.
+- [x] 28 casos visuales (7 pantallas × 320/390/768/1440), con Manrope compilada: sin desborde ni errores JavaScript. Estrés de cifras, recorrido preservado y foco de apertura/retorno comprobados.
+- [x] Revisión independiente: corregidos KPIs estrechos, títulos bajo encabezado fijo y etiqueta de saldo inválido. Sin cambios de backend, permisos ni cálculo contable.
+
+[Análisis, referencias Mobbin, capturas y límites](docs/design/README.md). Cambios locales; la publicación no forma parte de esta tarea.
+
 - [x] Fase 1: esquema reforzado y seed auditables.
 - [x] Fase 1: Next.js, OpenNext, Wrangler y bindings locales.
 - [x] Fase 1: Firebase Google, roles y protección de costos.

@@ -1,9 +1,9 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Copy, ExternalLink, FileImage, RefreshCw } from "lucide-react";
+import { CalendarDays, Copy, ExternalLink, FileImage, RefreshCw } from "lucide-react";
 import { api, apiBlob, ClientApiError, useSession } from "@/lib/client-api";
-import { AppShell, Money, Notice } from "@/components/ui";
+import { AppShell, Badge, Money, Notice } from "@/components/ui";
 import type { Role } from "@/lib/auth/types";
 import { getFirebaseAuth } from "@/lib/auth/client";
 import type { Movement } from "./_types";
@@ -97,6 +97,16 @@ export const transferLabels: Record<string, string> = {
   PENDING: "Pendiente de confirmación", VERIFIED: "Confirmada en banco", OBSERVED: "En revisión", REJECTED: "Rechazada",
 };
 
+export function transferTone(status: string): "success" | "warning" | "error" | "neutral" | "info" {
+  switch (status) {
+    case "VERIFIED": return "success";
+    case "PENDING": return "warning";
+    case "OBSERVED": return "info";
+    case "REJECTED": return "error";
+    default: return "neutral";
+  }
+}
+
 export function localDate(value: string, withTime = false): string {
   const date = new Date(value.includes("T") ? value : `${value.replace(" ", "T")}Z`);
   return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat("es-CO", {
@@ -159,29 +169,67 @@ export function Receipt({ id, gallery = false, path }: { id: string; gallery?: b
     finally { controllers.current.delete(controller); setBusy(false); }
   }
   if (!allowed) return null;
-  return <div>
-    {gallery && (imageUrl ? <img src={imageUrl} alt="Comprobante de transferencia para revisión bancaria" width={320} height={320} style={{ width: "100%", maxHeight: 340, objectFit: "contain", background: "#edf1f3", borderRadius: 12 }} /> : <p><FileImage size={24} aria-hidden /> Cargando comprobante…</p>)}
+  return <div className="sc-receipt">
+    {gallery && (imageUrl ? <img className="sc-receipt-image" src={imageUrl} alt="Comprobante de transferencia para revisión bancaria" width={320} height={320} /> : <p><FileImage size={24} aria-hidden /> Cargando comprobante…</p>)}
     {error && <Notice tone="error">{error} {gallery && <button type="button" className="sc-button sc-button-secondary" onClick={() => setEpoch((value) => value + 1)}>Reintentar imagen</button>}</Notice>}
-    <button type="button" className="sc-button sc-button-secondary" disabled={busy} onClick={openReceipt}><ExternalLink size={18} aria-hidden /> {busy ? "Abriendo…" : "Ver comprobante"}</button>
+    <button type="button" className="sc-button sc-button-secondary" disabled={busy} onClick={openReceipt}><ExternalLink size={18} aria-hidden /> {busy ? "Abriendo…" : "Ver comprobante"}<span className="sr-only"> (abre una nueva pestaña)</span></button>
   </div>;
 }
 
 export function History({ movements, showAdjustmentIds = false }: { movements: Movement[]; showAdjustmentIds?: boolean }) {
   if (!movements.length) return <Notice>Esta tarjeta todavía no tiene movimientos registrados.</Notice>;
   const labels: Record<string, string> = { VISIT: "Visita", OPENING: "Saldo de apertura", ADJUSTMENT: "Ajuste de saldo", TRANSFER_REVERSAL: "Reverso de transferencia" };
-  return <div className="sc-grid" style={{ gridTemplateColumns: "1fr" }}>
-    {[...movements].sort((a, b) => b.client_sequence - a.client_sequence).map((movement) => <article className="sc-panel" key={movement.id}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
-        <div><span className="sc-badge">{labels[movement.movement_type] ?? movement.movement_type}</span><h3>{localDate(movement.created_at, true)}</h3></div>
-        <div><small>Saldo después del movimiento</small><div style={{ fontSize: "1.4rem", fontWeight: 700 }}><Money value={Math.abs(movement.new_balance)} /></div>{movement.new_balance < 0 && <strong>Saldo a favor</strong>}</div>
+  const days = new Map<string, Movement[]>();
+  for (const movement of [...movements].sort((a, b) => b.client_sequence - a.client_sequence)) {
+    const date = localDate(movement.created_at);
+    const group = days.get(date);
+    if (group) group.push(movement);
+    else days.set(date, [movement]);
+  }
+  return <div className="sc-history">
+    {[...days].map(([date, dayMovements]) => <section className="sc-history-day" aria-label={date} key={date}>
+      <h3 className="sc-history-date"><CalendarDays size={17} aria-hidden /> {date}</h3>
+      <div className="sc-history-movements">
+        {dayMovements.map((movement) => <article className="sc-panel sc-history-card" key={movement.id}>
+          <div className="sc-history-header">
+            <div className="sc-history-kind">
+              <Badge tone={movement.movement_type === "TRANSFER_REVERSAL" ? "error" : "neutral"}>{labels[movement.movement_type] ?? movement.movement_type}</Badge>
+              <p className="sc-muted">{localDate(movement.created_at, true)}</p>
+            </div>
+            <div className="sc-history-balance">
+              <small>Saldo después del movimiento</small>
+              <strong><Money value={Math.abs(movement.new_balance)} /></strong>
+              {movement.new_balance < 0 && <span>Saldo a favor</span>}
+            </div>
+          </div>
+          <dl className="sc-history-summary">
+            <div><dt>{movement.previous_balance < 0 ? "Saldo anterior a favor" : "Saldo anterior"}</dt><dd><Money value={Math.abs(movement.previous_balance)} /></dd></div>
+            {movement.payment_amount > 0 && <div><dt>Abono {movement.payment_method === "CASH" ? "en efectivo" : "por transferencia"}</dt><dd><Money value={movement.payment_amount} /></dd></div>}
+            {movement.charge_amount > 0 && <div><dt>Productos</dt><dd><Money value={movement.charge_amount} /></dd></div>}
+            {movement.adjustment_amount !== 0 && <div><dt>Ajuste</dt><dd><Money value={movement.adjustment_amount} /></dd></div>}
+          </dl>
+          {movement.items.length > 0 && <div>
+            <h4 className="sc-muted">Productos recibidos</h4>
+            <ul className="sc-history-products">
+              {movement.items.map((item) => <li className="sc-history-product" key={item.product_id}>
+                <div><strong>{item.product_name_snapshot}</strong><p className="sc-history-product-detail"><span>Cantidad: {item.qty}</span><span>Precio fiado: <Money value={item.unit_credit_price} /></span></p></div>
+                <p className="sc-history-product-total"><span>Total</span><strong><Money value={item.subtotal} /></strong></p>
+              </li>)}
+            </ul>
+          </div>}
+          {movement.payment_method === "TRANSFER" && <div className="sc-history-transfer">
+            <Badge tone={transferTone(movement.transfer_status)}>{transferLabels[movement.transfer_status]}</Badge>
+            {["PENDING", "OBSERVED"].includes(movement.transfer_status) && <p>El abono ya se descontó provisionalmente del saldo.</p>}
+            {movement.transfer_status === "REJECTED" && <p>El importe volvió al saldo mediante un reverso registrado.</p>}
+          </div>}
+          {movement.reason && <p className="sc-history-reason"><strong>Motivo:</strong> {movement.reason}</p>}
+          {(showAdjustmentIds && movement.movement_type === "ADJUSTMENT" || movement.receipt_id) && <div className="sc-history-footer">
+            {showAdjustmentIds && movement.movement_type === "ADJUSTMENT" && <AdjustmentIdentity id={movement.id} />}
+            {movement.receipt_id && <Receipt id={movement.receipt_id} />}
+          </div>}
+        </article>)}
       </div>
-      {movement.items.length > 0 && <div style={{ overflowX: "auto" }}><table className="sc-table"><caption style={{ textAlign: "left" }}>Productos recibidos</caption><thead><tr><th>Producto</th><th>Cantidad</th><th>Precio fiado</th><th>Total</th></tr></thead><tbody>{movement.items.map((item) => <tr key={item.product_id}><td>{item.product_name_snapshot}</td><td>{item.qty}</td><td><Money value={item.unit_credit_price} /></td><td><Money value={item.subtotal} /></td></tr>)}</tbody></table></div>}
-      <dl style={{ display: "flex", gap: 24, flexWrap: "wrap" }}><div><dt>Saldo anterior</dt><dd><Money value={movement.previous_balance} /></dd></div>{movement.payment_amount > 0 && <div><dt>Abono {movement.payment_method === "CASH" ? "en efectivo" : "por transferencia"}</dt><dd><Money value={movement.payment_amount} /></dd></div>}{movement.charge_amount > 0 && <div><dt>Productos</dt><dd><Money value={movement.charge_amount} /></dd></div>}{movement.adjustment_amount !== 0 && <div><dt>Ajuste</dt><dd><Money value={movement.adjustment_amount} /></dd></div>}</dl>
-      {movement.payment_method === "TRANSFER" && <p><span className="sc-badge">{transferLabels[movement.transfer_status]}</span>{["PENDING", "OBSERVED"].includes(movement.transfer_status) && " El abono ya se descontó provisionalmente del saldo."}{movement.transfer_status === "REJECTED" && " El importe volvió al saldo mediante un reverso registrado."}</p>}
-      {movement.reason && <p><strong>Motivo:</strong> {movement.reason}</p>}
-      {showAdjustmentIds && movement.movement_type === "ADJUSTMENT" && <AdjustmentIdentity id={movement.id} />}
-      {movement.receipt_id && <Receipt id={movement.receipt_id} />}
-    </article>)}
+    </section>)}
   </div>;
 }
 
