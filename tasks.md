@@ -160,3 +160,12 @@ Configuración, límites de evidencia y recuperación: [integración Firebase](d
 - [x] Corregido snapshot de auditoría JSON null en altas de tarjeta, reproducido por el test operativo existente antes y después.
 - [x] Publicado código `807d0f8` y Worker `d7b6c2f8-b013-4fce-81f3-b84c5037b7de`; once comprobaciones HTTP públicas correctas, ambos botones visibles en Chrome y sin errores JS. Sin migraciones ni cambios a datos.
 - [x] Preview cerrado y builds/cachés limpiados; 29 archivos de persistencia y tres configuraciones locales conservados por comparación de hashes. Dependencias disponibles para continuar.
+
+## Simplificación de la landing — revisión local
+
+- [x] Aplicada la propuesta aprobada con `landing-sin-relleno`: seis secciones, títulos directos, beneficios sin duplicación, roles por nombre y retirada de antetítulos, iconos decorativos, numeración y rutas ornamentales.
+- [x] Solicitud de demostración específica hacia el WhatsApp público verificado de ALS DevStudio, con texto preparado y sin envío automático; instalación junto a su explicación en FAQ y en la cabecera.
+- [x] `pnpm test`: 258/258 en 18 archivos; `pnpm lint` y `pnpm build` con TypeScript correctos. Revisión independiente sin bloqueantes; Chrome a 320/390/800/1280 px, enlaces internos, FAQ con teclado e ingreso/regreso comprobados.
+- [x] Capturas y decisiones actualizadas en [revisión de la landing](docs/landing/README.md). Preview cerrado, viewport restablecido y `pnpm clean` completado; estado D1/R2 conservado.
+
+Estado: validación local completada; commit y push a `main` autorizados por el propietario para publicar mediante Workers Builds. No requiere migraciones.

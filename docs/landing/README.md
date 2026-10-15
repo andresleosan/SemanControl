@@ -1,5 +1,7 @@
 # Landing comercial de SemanControl
 
+La revisión local con `landing-sin-relleno` se describe al final de este documento. Las publicaciones anteriores se conservan como historial.
+
 Versión revisada y publicada el 14 de octubre de 2026 en [semancontrol.pages.dev](https://semancontrol.pages.dev/), con confirmación del propietario. Reemplaza la redirección de `/` por una portada pública; el acceso operativo continúa en `/login`. La landing no modifica autenticación, datos comerciales, roles, service worker ni migraciones.
 
 ## Resultado
@@ -74,3 +76,13 @@ Rollback previsto: versión `d7b6c2f8-b013-4fce-81f3-b84c5037b7de`, mediante `pn
 Código publicado en `origin/main` mediante [`88a2b0f`](https://github.com/andresleosan/SemanControl/commit/88a2b0f). Worker publicado: `1e707899-db38-43cf-a265-c8515c581766`, inicio en 17 ms. Las once comprobaciones HTTP públicas pasan; Chrome confirma acceso habilitado, consola sin errores y regreso efectivo a la landing mediante el enlace. [Escritorio publicado](login-published.jpg) · [Móvil publicado](login-mobile.jpg).
 
 Preview y pestañas de revisión cerrados; viewport temporal restablecido. `pnpm clean` retiró builds, cachés y temporales. Comparación SHA-256 confirma configuración y datos persistentes D1/R2 sin cambios; solo cambian dos archivos de observabilidad de Miniflare por las solicitudes de revisión. Ningún archivo de `.wrangler/state` fue eliminado. Se conservan dependencias, código, capturas y backups.
+
+## Simplificación de la landing — revisión local, 14 de octubre de 2026
+
+Aplicada la propuesta aprobada por el propietario con `landing-sin-relleno`: seis secciones con encabezados directos, beneficios integrados con el paso de tarjetas físicas al registro digital, proceso sin números ni iconos decorativos, roles identificados por su nombre, FAQ sin introducción de relleno y cierre comercial compacto. Se retiran también el eslogan bajo el hero y la órbita punteada de la ilustración. Se conservan la identidad visual, el ejemplo del producto y los avisos de conexión y datos ficticios.
+
+El hero tiene como acción principal «Solicitar una demostración», con apoyo de «Ver cómo funciona». El CTA abre el WhatsApp publicado por ALS DevStudio (`573146432135`) con una solicitud específica preparada; no envía el mensaje automáticamente. Se verificó el destino en el sitio público de ALS. El enlace institucional del pie sigue llevando a su web. La instalación permanece en la cabecera y dentro de la pregunta que explica su uso, con el controlador compartido existente.
+
+Validación: `pnpm test` **258/258** en 18 archivos, `pnpm lint`, TypeScript y `pnpm build` correctos. El build conserva los avisos previos de convención middleware y fallback de Google Sans. Revisión independiente sin bloqueantes. Chrome a 320, 390, 800 y 1280 px: sin desbordamiento horizontal; un h1, seis secciones y todos los destinos de anchors presentes. FAQ abierta con clic y cerrada con Enter; botón de instalación visible al expandir su respuesta. Ingresar abre `/login` y permite volver a la landing; consola sin errores en la revisión. No se automatizó Google ni se completó una instalación.
+
+Capturas de revisión: [escritorio](simplified-desktop.jpg), [inicio móvil](simplified-mobile.jpg) y [proceso móvil](simplified-process-mobile.jpg). El propietario autorizó commit y push a `main` para publicar esta versión mediante Workers Builds. No requiere migraciones. Para recuperar el diseño anterior, revertir el commit de esta revisión y subir la reversión a `main`; no hay datos que revertir.

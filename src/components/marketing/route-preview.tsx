@@ -11,12 +11,6 @@ export default function RoutePreview() {
   return (
     <figure className={styles.preview} aria-label="Ejemplo ilustrativo de un recorrido y el registro de una visita en SemanControl">
       <div className={styles.glow} aria-hidden="true" />
-      <svg className={styles.orbit} viewBox="0 0 540 540" fill="none" aria-hidden="true">
-        <path d="M47 367C-6 266 66 130 195 94C321 58 476 105 493 245C509 383 432 481 302 484C166 488 120 427 139 354C157 285 249 271 311 317" stroke="currentColor" strokeWidth="1.5" strokeDasharray="5 8" />
-        <circle cx="47" cy="367" r="5" fill="currentColor" />
-        <circle cx="311" cy="317" r="5" fill="currentColor" />
-      </svg>
-
       <div className={styles.board}>
         <div className={styles.boardHeader}>
           <div className={styles.boardTitle}>

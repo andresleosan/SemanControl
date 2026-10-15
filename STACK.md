@@ -45,7 +45,9 @@ Medición final Fases 1–4: dry-run de Wrangler reportó **1504.13 KiB gzip** p
 
 ## Identidad de la landing comercial — 2026-10-14
 
-Portada pública en `/` para negocios que venden fiado y cobran en recorridos. CTA de demostración hacia `https://www.alsdevstudio.com/`, destino indicado por el propietario; el acceso operativo sigue en `/login`. Se promociona una demostración y puesta en marcha por negocio, sin inscripción automática ni precios publicados.
+Portada pública en `/` para negocios que venden fiado y cobran en recorridos. El CTA de demostración abre el WhatsApp público de ALS DevStudio con una solicitud específica de SemanControl preparada para enviar; el enlace institucional del pie conserva `https://www.alsdevstudio.com/`. El acceso operativo sigue en `/login`. Se promociona una demostración y puesta en marcha por negocio, sin inscripción automática ni precios publicados.
+
+La revisión aprobada con `landing-sin-relleno` conserva Manrope, verde #155f4b para las acciones, texto #17372d y fondos blanco/#f4f7f5. La jerarquía usa títulos directos y seis secciones: inicio, producto/beneficios, recorrido, roles, preguntas y demostración. Se retiran antetítulos, iconos de adorno, numeración ornamental y el bloque duplicado de papel a digital. La vista de tarjetas del producto conserva sus cifras de ejemplo y estados, con aviso de datos ficticios. Los controles de instalación, ingreso y preguntas mantienen sus iconos funcionales y foco visible.
 
 Referencias de categoría: [Treinta](https://www.treinta.co/) por su presentación desde el celular, [Alegra Colombia](https://www.alegra.com/colombia/) por separar demostración y acceso, y [Siigo](https://www.siigo.com/) por explicar la incorporación al servicio. Se toman convenciones de estructura y claridad; textos y gráficos son propios.
 
