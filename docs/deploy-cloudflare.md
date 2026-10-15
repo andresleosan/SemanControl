@@ -85,18 +85,26 @@ El backend exige `Origin` exactamente igual a `APP_ORIGIN` para mutaciones. Los 
 
 ## Builds desde GitHub
 
-Después de conectar `andresleosan/SemanControl` al Worker en Workers Builds, configura:
+La integración nativa de Workers Builds está conectada a `andresleosan/SemanControl` en el Worker existente `semancontrol`. Cada push a `main` compila y despliega automáticamente la aplicación; el sitio conserva `https://semancontrol.pages.dev` mediante el puente Pages existente.
 
 | Ajuste | Valor |
 | --- | --- |
 | Rama de producción | `main` |
+| Directorio raíz | `/` |
 | Comando de build | `pnpm build:production` |
 | Comando de deploy | `pnpm deploy:production` |
 | `PNPM_VERSION` | `11.23.0` |
-| `NODE_VERSION` | Una versión Node 22 o superior ya verificada. |
+| `NODE_VERSION` | `24.18.0` |
 | Variables del build | Las cuatro `NEXT_PUBLIC_FIREBASE_*`. |
+| Builds de preview | Deshabilitados. |
+| Caché de build | Deshabilitada. |
+| Token de despliegue | `SemanControl GitHub deploy`, gestionado por Cloudflare. |
 
-Las variables del build y las variables runtime son independientes. El puente Pages se publica desde `deploy/pages` con su propio TOML; su contenido no necesita recompilar Next.js. Coordina ambos despliegues si cambia el nombre del Worker o el contrato del puente.
+Las cuatro variables públicas de Firebase ya están configuradas en el entorno de build. Las variables del build y las variables runtime son independientes. Ambos comandos seleccionan `wrangler.production.toml` y no ejecutan migraciones D1 ni seed. Los cambios de esquema mantienen el procedimiento de backup, revisión y publicación acordada descrito arriba.
+
+Pages permanece sin conexión Git y su puente se publica manualmente desde `deploy/pages` con su propio TOML. Los cambios habituales de la aplicación solo actualizan el Worker. Coordina ambos despliegues si cambia el nombre del Worker o el contrato del puente. El rollback se realiza manualmente sobre la versión anterior del Worker; no revierte datos D1/R2.
+
+Para verificar el flujo, comprueba que el push a `main` genera un build con el mismo commit, termina con un despliegue correcto y mantiene `/login` en HTTP 200 y `/admin/cierre` sin sesión redirigiendo al acceso. La conexión guardada por sí sola no confirma que el pipeline haya terminado correctamente.
 
 Después de verificar y publicar, `pnpm clean` retira los builds y cachés raíz, además de `deploy/pages/.wrangler/tmp`. Conserva cualquier directorio `state`. `pnpm clean:all` también retira las dependencias regenerables.
 
