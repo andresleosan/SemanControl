@@ -1,6 +1,6 @@
 import "server-only";
 import type { Principal } from "../auth/types";
-import type { ClientCard, Movement, RouteProduct } from "../contracts";
+import type { ClientCard, Movement, RouteProduct, WorkerClient, WorkerClientsData } from "../contracts";
 import { ApiError } from "../security/errors";
 import { assertAssignment, assertWorker, CLIENT_COLUMNS, clearGuards, guard, identifier } from "./core";
 import { publicHistory, routeInventory } from "./read-model";
@@ -8,6 +8,12 @@ import { publicHistory, routeInventory } from "./read-model";
 interface RouteDispatch { id: string; name: string; dispatch_date: string; status: "OPEN" | "CLOSED" }
 const ACTIVE_ASSIGNMENT = "EXISTS (SELECT 1 FROM users u JOIN dispatch_workers w ON w.worker_user_id = u.id JOIN route_dispatches d ON d.id = w.dispatch_id WHERE u.id = ? AND u.role = 'WORKER' AND u.is_active = 1 AND d.status = 'OPEN')";
 const VISIT_COLUMNS = ", (SELECT u.name FROM ledger_movements m JOIN users u ON u.id = m.worker_user_id WHERE m.client_id = c.id AND m.dispatch_id = ? AND m.movement_type = 'VISIT' ORDER BY m.client_sequence DESC, m.created_at DESC, m.id DESC LIMIT 1) AS visited_by, (SELECT COUNT(*) FROM ledger_movements m WHERE m.client_id = c.id AND m.dispatch_id = ? AND m.movement_type = 'VISIT') AS visits_count";
+
+export async function readWorkerClients(db: D1Database, principal: Principal): Promise<WorkerClientsData> {
+  await assertWorker(db, principal);
+  const { results } = await db.prepare("SELECT id, name, address, address_reference, route_order, current_balance FROM clients WHERE is_active = 1 ORDER BY route_order, id").all<WorkerClient>();
+  return { clients: results };
+}
 
 export async function readRoute(db: D1Database, principal: Principal, requested?: string | null): Promise<{ dispatches: RouteDispatch[]; clients: ClientCard[]; inventory: RouteProduct[] }> {
   await assertWorker(db, principal);

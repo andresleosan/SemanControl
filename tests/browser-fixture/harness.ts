@@ -7,7 +7,7 @@ import { createApiRoute, readJson } from "../../src/lib/api";
 import type { Principal, Role } from "../../src/lib/auth/types";
 import { clientDetail, clientRow, clientsView, closureView, history, inventoryView } from "../../src/lib/admin/read-model";
 import { adjustBalance, changeStock, closeDispatch, createDispatch, decideTransfer, saveClient, saveProduct, saveWorker } from "../../src/lib/admin/write-model";
-import { confirmSynchronized, createRouteClient, readRoute, readRouteClient, readRouteSummary } from "../../src/lib/operations/route";
+import { confirmSynchronized, createRouteClient, readRoute, readRouteClient, readRouteSummary, readWorkerClients } from "../../src/lib/operations/route";
 import { registerVisit } from "../../src/lib/operations/visits";
 import { readReceipt, readReceiptForm, uploadReceipt } from "../../src/lib/operations/receipts";
 import { listIncidents, resolveIncident } from "../../src/lib/incidents";
@@ -127,7 +127,7 @@ export class BrowserHarness {
     if (path === "/api/admin/incidencias") return route(request, ["ADMIN"], async () => post ? resolveIncident(this.db, principal, await readJson(request)) : listIncidents(this.db, url.searchParams.get("dispatch_id")));
     if (path === "/api/ruta") return route(request, ["WORKER"], async () => readRoute(this.db, principal, url.searchParams.get("dispatch_id")));
     if (path.startsWith("/api/ruta/cliente/")) return route(request, ["WORKER"], async () => readRouteClient(this.db, principal, decodeURIComponent(path.slice("/api/ruta/cliente/".length)), url.searchParams.get("dispatch_id") ?? ""));
-    if (path === "/api/ruta/clientes") return route(request, ["WORKER"], async () => createRouteClient(this.db, principal, await readJson(request)));
+    if (path === "/api/ruta/clientes") return route(request, ["WORKER"], async () => post ? createRouteClient(this.db, principal, await readJson(request)) : readWorkerClients(this.db, principal));
     if (path === "/api/ruta/resumen") return route(request, ["WORKER"], async () => post ? confirmSynchronized(this.db, principal, String((await readJson(request)).dispatch_id)) : readRouteSummary(this.db, principal, url.searchParams.get("dispatch_id") ?? ""));
     if (path === "/api/ruta/visita") {
       let payload: Record<string, unknown> = {};

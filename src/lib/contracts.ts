@@ -1,6 +1,8 @@
 import type { Principal } from "./auth/types";
 export type { Principal };
 export interface ClientCard {id:string;name:string;address:string;address_reference:string;route_order:number;linked_email:string|null;current_balance:number;is_active:number;revision:number;visited_by?:string|null;visits_count?:number}
+export type WorkerClient = Pick<ClientCard, "id" | "name" | "address" | "address_reference" | "route_order" | "current_balance">;
+export interface WorkerClientsData { clients: WorkerClient[] }
 export interface RouteProduct {id:string;name:string;credit_price:number;remaining_qty:number;initial_qty:number}
 export interface MovementItem {product_id:string;product_name_snapshot:string;qty:number;unit_credit_price:number;subtotal:number}
 export interface Movement {id:string;client_id:string;dispatch_id:string|null;worker_user_id:string;movement_type:string;previous_balance:number;payment_amount:number;payment_method:"NONE"|"CASH"|"TRANSFER";transfer_status:string;charge_amount:number;adjustment_amount:number;new_balance:number;reason:string|null;created_at:string;client_sequence:number;receipt_id?:string|null;items:MovementItem[]}

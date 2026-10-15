@@ -31,6 +31,10 @@ La cola local y el resumen del servidor pueden referirse a la misma visita si se
 
 ## Identidad visual
 
+La consulta de clientes del trabajador (`/ruta/clientes`) conserva esta identidad: tarjetas con el número físico, nombre y deuda como primer nivel; dirección y referencia para reconocer la casa. Reutiliza Manrope, tinta `#17372d`, verde `#155f4b`, fondo `#f4f7f5` y estados con texto. La navegación incorpora «Clientes» en móvil y escritorio; búsqueda y filtros permanecen junto al listado. No requiere seleccionar recorrido ni permite editar saldos. Los datos conservados en el teléfono llevan fecha de última consulta cuando no se pueden actualizar.
+
+[Consulta de clientes en móvil, con datos ficticios del harness](screenshots/worker-clients-390.png). Verificados cuatro anchos (320/390/768/1440), búsqueda, filtros, consulta sin recorrido y revocación de acceso seguida de fallo de red. La captura usa la tipografía de respaldo del harness; la compilación final incorpora la fuente de la aplicación.
+
 - Verde `#155f4b`: acción principal y saldo; conserva la marca.
 - Tinta `#17372d`: nombres, importes y títulos; secundario `#52665e` para referencias y fechas.
 - Fondo `#f4f7f5`, superficies blancas y bordes `#dce5df`: separación sin decoración que compita con cifras.

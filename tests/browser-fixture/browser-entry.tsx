@@ -4,6 +4,7 @@ import ClientsPage from "../../src/app/admin/clientes/client-directory";
 import ClosurePage from "../../src/app/admin/cierre/page";
 import MyAccountPage from "../../src/app/mi-cuenta/page";
 import RouteBoard from "../../src/app/ruta/route-board";
+import WorkerClients from "../../src/app/ruta/clientes/worker-clients";
 import RouteSummary from "../../src/app/ruta/resumen/route-summary";
 import VisitView from "../../src/app/ruta/cliente/[id]/visit-view";
 
@@ -15,6 +16,7 @@ const screen = url.pathname === "/admin/inventario" ? <InventoryPage />
   : url.pathname === "/admin/cierre" ? <ClosurePage />
   : url.pathname === "/mi-cuenta" ? <MyAccountPage />
   : url.pathname === "/ruta/resumen" ? <RouteSummary initialDispatch={dispatch} />
+  : url.pathname === "/ruta/clientes" ? <WorkerClients initialDispatch={dispatch} />
   : clientId ? <VisitView id={clientId} dispatch={dispatch} />
   : <RouteBoard initialDispatch={dispatch} />;
 createRoot(document.getElementById("root")!).render(screen);

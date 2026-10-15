@@ -1,5 +1,17 @@
 # SemanControl — tareas
 
+## Consulta de clientes para el trabajador — 2026-10-14
+
+- [x] Sección «Clientes» en la navegación móvil y de escritorio del trabajador; conserva el recorrido al volver a ruta o cuadre.
+- [x] Consulta de tarjetas activas sin requerir recorrido abierto/asignado: deuda, al día y saldo a favor, búsqueda sin tildes por nombre/dirección/referencia o número exacto y filtros de saldo.
+- [x] GET protegido para WORKER activo con proyección mínima, sin correo, costos, margen ni auditoría. No cambia saldos ni requiere migración.
+- [x] Copia local aislada por UID, fecha de consulta y aviso de datos sin actualizar. Denegación 401/403 impide recuperar datos guardados hasta una consulta autorizada; regresión comprobada tras fallo de red y recuperación de acceso.
+- [x] Verificación final: `pnpm test` 186/186 (incluye 9 pruebas de navegador); `pnpm test:pages` 4/4; `pnpm test:db` 34/34. Total 224. `pnpm typecheck`, `pnpm lint`, `pnpm build:worker` y auditoría de dependencias correctos. Corregida la actualización síncrona inicial detectada por lint antes de la comprobación final.
+- [x] Navegador con componentes reales y D1 efímero: búsqueda, estados, ausencia de asignación, caché/revocación y cuatro anchos (320/390/768/1440) sin desborde. Revisión independiente completada sin bloqueantes pendientes.
+- [x] `pnpm clean` completado. Comparación SHA-256 confirma los 33 archivos de persistencia/configuración controlados sin cambios. Dependencias conservadas para continuar.
+
+[Captura móvil con datos ficticios](docs/design/screenshots/worker-clients-390.png). Versión revisable; publicación en producción pendiente.
+
 ## Revisión y mejora visual de los tres roles — 2026-10-14
 
 - [x] Auditoría de administración, trabajador y cliente contra la especificación; benchmark con MCP de Mobbin y mejoras locales aplicadas.

@@ -3,7 +3,7 @@ import { Miniflare, convertV4MiniflareOptions } from "miniflare";
 import { readFile } from "node:fs/promises";
 import { registerVisit } from "../src/lib/operations/visits";
 import { cleanupOrphanReceipts, readReceipt, readReceiptForm, uploadReceipt } from "../src/lib/operations/receipts";
-import { confirmSynchronized, createRouteClient, readRoute, readRouteClient, readRouteSummary } from "../src/lib/operations/route";
+import { confirmSynchronized, createRouteClient, readRoute, readRouteClient, readRouteSummary, readWorkerClients } from "../src/lib/operations/route";
 
 let mf: Miniflare;
 let db: D1Database;
@@ -310,6 +310,33 @@ describe("private transfer receipts", () => {
     await registerVisit(db, worker, visit({ payment_method: "TRANSFER", receipt_id: receipt.receipt_id }));
     await expect(db.prepare("INSERT OR REPLACE INTO receipts(id,owner_user_id,client_id,dispatch_id,r2_key,file_hash,byte_size,width,height) SELECT id,owner_user_id,client_id,dispatch_id,r2_key,file_hash,byte_size,width,height FROM receipts WHERE id = ?").bind(receipt.receipt_id).run()).rejects.toThrow(/RECEIPT_ID_ALREADY_EXISTS/);
     expect((await readReceipt(env, worker, receipt.receipt_id)).status).toBe(200);
+  });
+});
+
+describe("worker client consultation directory", () => {
+  it("returns ordered active clients without an assigned route and only consultation fields", async () => {
+    await db.prepare("DELETE FROM dispatch_workers WHERE worker_user_id = ?").bind(worker.userId).run();
+    const result = await readWorkerClients(db, worker);
+    expect(Object.keys(result)).toEqual(["clients"]);
+    expect(result.clients.map((client) => client.route_order)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(result.clients[0]).toEqual({ id: "client-demo-01", name: "Cliente de prueba 01", address: "Calle de prueba 1 # 1-01", address_reference: "Reja verde, primer piso", route_order: 1, current_balance: 65000 });
+    for (const client of result.clients) expect(Object.keys(client).sort()).toEqual(["address", "address_reference", "current_balance", "id", "name", "route_order"]);
+  });
+
+  it("excludes inactive cards and preserves a balance in the client's favor", async () => {
+    await db.prepare("UPDATE clients SET is_active = 0 WHERE id = 'client-demo-02'").run();
+    const result = await readWorkerClients(db, worker);
+    expect(result.clients.map((client) => client.route_order)).toEqual([1, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(result.clients.at(-1)).toMatchObject({ id: "client-demo-10", current_balance: -5000 });
+  });
+
+  it.each(["ADMIN", "CLIENT"] as const)("rejects %s access", async (role) => {
+    await expect(readWorkerClients(db, { ...worker, role })).rejects.toMatchObject({ status: 403, code: "WORKER_REQUIRED" });
+  });
+
+  it("rejects a suspended worker even with a previously valid principal", async () => {
+    await db.prepare("UPDATE users SET is_active = 0 WHERE id = ?").bind(worker.userId).run();
+    await expect(readWorkerClients(db, worker)).rejects.toMatchObject({ status: 403, code: "WORKER_REQUIRED" });
   });
 });
 

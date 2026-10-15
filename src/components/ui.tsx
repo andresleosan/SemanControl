@@ -16,7 +16,7 @@ export function Field({label,children}:{label:string;children:ReactNode}){return
 export function SubmitButton({children,...props}:ButtonHTMLAttributes<HTMLButtonElement>){return <button type="submit" {...props} className={`sc-button ${props.className??""}`}>{children}</button>;}
 export function AppShell({role,children,title,subtitle,dispatchId,hideMobileNav=false}:{role:Role;children:ReactNode;title:string;subtitle?:string;dispatchId?:string;hideMobileNav?:boolean}){
   const path=usePathname();
-  const links=role==="ADMIN"?[["/admin/cierre","Cierre",ClipboardCheck],["/admin/inventario","Bodega",Warehouse],["/admin/clientes","Tarjetas",Users]] as const:role==="WORKER"?[["/ruta","Mi ruta",Route],["/ruta/resumen","Mi cuadre",WalletCards]] as const:[["/mi-cuenta","Mi tarjeta",CreditCard]] as const;
+  const links=role==="ADMIN"?[["/admin/cierre","Cierre",ClipboardCheck],["/admin/inventario","Bodega",Warehouse],["/admin/clientes","Tarjetas",Users]] as const:role==="WORKER"?[["/ruta","Mi ruta",Route],["/ruta/clientes","Clientes",Users],["/ruta/resumen","Mi cuadre",WalletCards]] as const:[["/mi-cuenta","Mi tarjeta",CreditCard]] as const;
   const roleLabel=role==="ADMIN"?"Administración":role==="WORKER"?"Trabajo en ruta":"Mi cuenta";
   const destination=(href:string)=>role==="WORKER"&&dispatchId?`${href}?dispatch_id=${encodeURIComponent(dispatchId)}`:href;
   const active=(href:string)=>href==="/ruta"?path===href||path.startsWith("/ruta/cliente/"):path===href||path.startsWith(`${href}/`);

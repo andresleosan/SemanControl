@@ -61,6 +61,79 @@ async function visitCount() { return (await harness.db.prepare("SELECT COUNT(*) 
 async function clientState(id = "client-demo-01") { return harness.db.prepare("SELECT current_balance,revision FROM clients WHERE id=?").bind(id).first(); }
 
 describe("actual UI against isolated D1/R2 at 390 × 844", () => {
+  it("looks up client debts from worker navigation without requiring an assigned route", async () => {
+    const worker = await open("worker", `/ruta?dispatch_id=${dispatchId}`);
+    await worker.getByRole("link", { name: "Clientes", exact: true }).click();
+    await browserExpect(worker.getByRole("heading", { name: "Clientes", exact: true })).toBeVisible();
+    await browserExpect(worker.getByRole("link", { name: "Clientes", exact: true })).toHaveAttribute("aria-current", "page");
+    await browserExpect(worker.getByRole("link", { name: "Mi ruta", exact: true })).toHaveAttribute("href", `/ruta?dispatch_id=${dispatchId}`);
+    const cards = worker.getByRole("article");
+    await browserExpect(cards).toHaveCount(10);
+    await worker.getByLabel("Buscar cliente").fill("#1");
+    await browserExpect(cards).toHaveCount(1);
+    await browserExpect(cards).toContainText("Cliente de prueba 01");
+    await browserExpect(cards).toContainText("Deuda actual");
+    await browserExpect(cards).toContainText("65.000");
+    await worker.getByLabel("Buscar cliente").fill("arbol");
+    await browserExpect(cards).toHaveCount(1);
+    await browserExpect(cards).toContainText("Cliente de prueba 05");
+    await worker.getByLabel("Buscar cliente").fill("");
+    await worker.getByRole("button", { name: "Al día", exact: true }).click();
+    await browserExpect(cards).toHaveCount(1);
+    await browserExpect(cards).toContainText("Cliente de prueba 04");
+    await worker.getByRole("button", { name: "A favor", exact: true }).click();
+    await browserExpect(cards).toHaveCount(1);
+    await browserExpect(cards).toContainText("Saldo a favor");
+    await browserExpect(cards).toContainText("5.000");
+    await worker.getByRole("button", { name: "Con deuda", exact: true }).click();
+    await browserExpect(cards).toHaveCount(8);
+    await worker.getByLabel("Buscar cliente").fill("no existe esta tarjeta");
+    await browserExpect(worker.getByText("No hay clientes que coincidan con tu búsqueda y filtro.")).toBeVisible();
+    await worker.getByLabel("Buscar cliente").fill("");
+    await worker.getByRole("button", { name: "Todos", exact: true }).click();
+    for (const width of [320, 390, 768, 1440]) {
+      await worker.setViewportSize({ width, height: 900 });
+      expect(await worker.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    }
+    await worker.setViewportSize({ width: 390, height: 844 });
+    await snapshot(worker, "worker-clients");
+    expect(await visitCount()).toBe(0);
+    expect(harness.responses.findLast((row) => row.path === "/api/ruta/clientes")?.body).not.toMatch(/cost_price|linked_email|firebase_uid|estimated_margin/);
+    await harness.db.prepare("DELETE FROM dispatch_workers WHERE worker_user_id=?").bind(principals.worker.userId).run();
+    await worker.goto(`${harness.origin}/ruta/clientes`);
+    await browserExpect(cards).toHaveCount(10);
+    verifyBrowser();
+  }, 60000);
+
+  it("labels saved client debts after a failed refresh and hides them when access is revoked", async () => {
+    const worker = await open("worker", "/ruta/clientes");
+    const cards = worker.getByRole("article");
+    await browserExpect(cards).toHaveCount(10);
+    await browserExpect.poll(() => observedAt(worker, "worker-clients")).not.toBeNull();
+    await worker.route("**/api/ruta/clientes", (route) => route.abort("internetdisconnected"));
+    await worker.getByRole("button", { name: "Actualizar clientes", exact: true }).click();
+    await browserExpect(worker.getByText(/No pudimos actualizar.*última consulta:/)).toBeVisible();
+    await browserExpect(cards).toHaveCount(10);
+    await worker.context().setOffline(true);
+    await browserExpect(worker.getByText(/Sin conexión.*última consulta:/)).toBeVisible();
+    await worker.context().setOffline(false);
+    await worker.unroute("**/api/ruta/clientes");
+    await worker.route("**/api/ruta/clientes", (route) => route.fulfill({ status: 403, contentType: "application/json", body: JSON.stringify({ error: { code: "ACCOUNT_DISABLED", message: "Tu acceso está desactivado." } }) }));
+    await browserExpect(worker.getByRole("button", { name: "Actualizar clientes", exact: true })).toBeEnabled();
+    await worker.getByRole("button", { name: "Actualizar clientes", exact: true }).click();
+    await browserExpect(worker.getByRole("alert")).toContainText("Tu acceso está desactivado.");
+    await browserExpect(cards).toHaveCount(0);
+    await worker.unroute("**/api/ruta/clientes");
+    await worker.route("**/api/ruta/clientes", (route) => route.abort("internetdisconnected"));
+    await worker.getByRole("button", { name: "Actualizar clientes", exact: true }).click();
+    await browserExpect(worker.getByRole("button", { name: "Actualizar clientes", exact: true })).toBeEnabled();
+    await browserExpect(cards).toHaveCount(0);
+    await worker.unroute("**/api/ruta/clientes");
+    await worker.getByRole("button", { name: "Actualizar clientes", exact: true }).click();
+    await browserExpect(cards).toHaveCount(10);
+    verifyBrowser();
+  }, 60000);
+
   it("recovers a lost response once, uploads browser WebP, declares cash and exposes a private-cost-free client history", async () => {
     const worker = await open("worker", `/ruta?dispatch_id=${dispatchId}`);
     await browserExpect(worker.getByRole("link", { name: /Cliente de prueba 01/ })).toBeVisible();
