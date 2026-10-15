@@ -91,19 +91,105 @@ describe("private resource visibility", () => {
   });
 });
 
+import { prepareOpeningItems } from "../src/app/admin/clientes/opening-model";
+
 const clientEditor = {
   id: "", name: "María", address: "Calle 10", address_reference: "Reja negra", route_order: "",
   linked_email: "", is_active: true, reason: "Tarjeta física original", opening_balance: "65000",
 };
 describe("original client opening balance", () => {
+  const previousDelivery = { product_id: "yogurt-fresa", qty: "2", unit_credit_price: "12000" };
+
+  it("calculates the previous product deliveries with the entered historical price", () => {
+    expect(prepareOpeningItems([previousDelivery])).toEqual({
+      items: [{ product_id: "yogurt-fresa", qty: 2, unit_credit_price: 12000 }], total: 24000,
+    });
+    expect(prepareOpeningItems([{ ...previousDelivery, unit_credit_price: "9000" }])).toEqual({
+      items: [{ product_id: "yogurt-fresa", qty: 2, unit_credit_price: 9000 }], total: 18000,
+    });
+    expect(prepareOpeningItems([])).toEqual({ items: [], total: 0 });
+  });
+
+  it("sends previous deliveries as product lines without counting their value twice", () => {
+    const body = prepareClientSave({
+      ...clientEditor, opening_balance: "0", opening_items: [previousDelivery],
+    });
+    expect(body).toMatchObject({ opening_items: [{ product_id: "yogurt-fresa", qty: 2, unit_credit_price: 12000 }] });
+    expect(body).not.toHaveProperty("opening_balance");
+    expect(body).not.toHaveProperty("reason");
+  });
+
+  it("rejects a manual balance together with previous product deliveries", () => {
+    expect(() => prepareClientSave({ ...clientEditor, opening_items: [previousDelivery] })).toThrow(/saldo/i);
+    expect(() => prepareClientSave({ ...clientEditor, opening_balance: "-12000", opening_items: [previousDelivery] })).toThrow(/saldo/i);
+  });
+
   it("sends the physical card balance directly in a new client request", () => {
     expect(prepareClientSave(clientEditor)).toMatchObject({ opening_balance: 65000 });
     expect(prepareClientSave({ ...clientEditor, opening_balance: "-12000" })).toMatchObject({ opening_balance: -12000 });
+    expect(prepareClientSave({ ...clientEditor, opening_balance: "0", opening_items: [] })).toMatchObject({ opening_balance: 0 });
+    expect(prepareClientSave({ ...clientEditor, opening_balance: "1000000000" })).toMatchObject({ opening_balance: 1000000000 });
+    expect(prepareClientSave({ ...clientEditor, opening_balance: "-1000000000" })).toMatchObject({ opening_balance: -1000000000 });
   });
+
+  it.each(["", "1.5", "NaN", "Infinity", "1000000001", "-1000000001", "9007199254740992"])("rejects the invalid manual balance %s", (opening_balance) => {
+    expect(() => prepareClientSave({ ...clientEditor, opening_balance })).toThrow(/saldo/i);
+  });
+
+  it("normalizes the card details and sends no reason even when an older draft contains one", () => {
+    expect(prepareClientSave({
+      ...clientEditor, name: " María ", address: " Calle 10 ", address_reference: " Reja negra ",
+      linked_email: " MARIA@EXAMPLE.COM ",
+    })).toEqual({
+      name: "María", address: "Calle 10", address_reference: "Reja negra", linked_email: "maria@example.com",
+      is_active: 1, opening_balance: 65000,
+    });
+    const withoutReason = { ...clientEditor, reason: undefined };
+    expect(prepareClientSave(withoutReason)).not.toHaveProperty("reason");
+  });
+
+  it("normalizes product identifiers and rejects duplicate or missing products", () => {
+    expect(prepareOpeningItems([{ ...previousDelivery, product_id: " yogurt-fresa " }]).items[0].product_id).toBe("yogurt-fresa");
+    expect(() => prepareOpeningItems([previousDelivery, { ...previousDelivery, product_id: " yogurt-fresa " }])).toThrow(/repetid|duplicad/i);
+    expect(() => prepareOpeningItems([{ ...previousDelivery, product_id: " " }])).toThrow(/producto/i);
+  });
+
+  it.each(["", "0", "-1", "1.5", "NaN", "Infinity", "100001", "9007199254740992"])("rejects the invalid opening quantity %s", (qty) => {
+    expect(() => prepareOpeningItems([{ ...previousDelivery, qty }])).toThrow(/cantidad/i);
+  });
+
+  it.each(["", "-1", "1.5", "NaN", "Infinity", "1000000001", "9007199254740992"])("rejects the invalid historical price %s", (unit_credit_price) => {
+    expect(() => prepareOpeningItems([{ ...previousDelivery, unit_credit_price }])).toThrow(/precio/i);
+  });
+
+  it("accepts free historical products and the maximum quantity without overflowing the debt", () => {
+    expect(prepareOpeningItems([{ ...previousDelivery, qty: "100000", unit_credit_price: "0" }])).toEqual({
+      items: [{ product_id: "yogurt-fresa", qty: 100000, unit_credit_price: 0 }], total: 0,
+    });
+    expect(prepareOpeningItems([{ ...previousDelivery, qty: "1", unit_credit_price: "1000000000" }]).total).toBe(1000000000);
+    expect(() => prepareOpeningItems([{ ...previousDelivery, unit_credit_price: "500000001" }])).toThrow(/total|deuda/i);
+    expect(() => prepareOpeningItems([
+      { ...previousDelivery, qty: "1", unit_credit_price: "1000000000" },
+      { product_id: "yogurt-mora", qty: "1", unit_credit_price: "1" },
+    ])).toThrow(/total|deuda/i);
+  });
+
+  it("limits a previous-delivery request to fifty distinct product lines", () => {
+    const lines = Array.from({ length: 50 }, (_, index) => ({ product_id: `product-${index}`, qty: "1", unit_credit_price: "0" }));
+    expect(prepareOpeningItems(lines).items).toHaveLength(50);
+    expect(() => prepareOpeningItems([...lines, { product_id: "extra", qty: "1", unit_credit_price: "0" }])).toThrow(/50|productos|líneas/i);
+  });
+
   it("does not send an opening balance when editing an existing card", () => {
     const body = prepareClientSave({ ...clientEditor, id: "client-1", route_order: "7" });
     expect(body).toMatchObject({ id: "client-1", route_order: 7 });
     expect(body).not.toHaveProperty("opening_balance");
+    expect(body).not.toHaveProperty("opening_items");
+    expect(body).not.toHaveProperty("reason");
+  });
+
+  it("rejects previous-delivery changes when editing an existing card", () => {
+    expect(() => prepareClientSave({ ...clientEditor, id: "client-1", opening_items: [previousDelivery] })).toThrow(/apertura|inicial/i);
   });
   it("preserves the complete new-card request on retry, including the opening balance", () => {
     const drafts = new OperationDrafts();
@@ -111,5 +197,18 @@ describe("original client opening balance", () => {
     const first = drafts.prepare("/api/admin/clientes", body);
     expect(drafts.prepare("/api/admin/clientes", body)).toEqual(first);
     expect(first.opening_balance).toBe(65000);
+  });
+
+  it("preserves the normalized product request and operation key after an uncertain response", () => {
+    const drafts = new OperationDrafts();
+    const first = drafts.prepare("/api/admin/clientes", prepareClientSave({
+      ...clientEditor, opening_balance: "0", opening_items: [previousDelivery],
+    }));
+    const retry = drafts.prepare("/api/admin/clientes", prepareClientSave({
+      ...clientEditor, opening_balance: "0", opening_items: [{ ...previousDelivery, qty: " 2 ", unit_credit_price: "12000 " }],
+    }));
+    expect(retry).toEqual(first);
+    expect(first.opening_items).toEqual([{ product_id: "yogurt-fresa", qty: 2, unit_credit_price: 12000 }]);
+    expect(first).not.toHaveProperty("opening_balance");
   });
 });

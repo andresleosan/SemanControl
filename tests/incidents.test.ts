@@ -10,7 +10,7 @@ it("retains only the winning private incident image when UUID uploads race", asy
     mf = new Miniflare(convertV4MiniflareOptions({ modules: true, script: "export default {fetch(){return new Response('ok')}}", compatibilityDate: "2026-10-14", d1Databases: ["DB"], r2Buckets: ["RECEIPTS_BUCKET"] }));
     const db = await mf.getD1Database("DB") as unknown as D1Database;
     const bucket = await mf.getR2Bucket("RECEIPTS_BUCKET") as unknown as R2Bucket;
-    for (const file of ["migrations/0001_init.sql", "migrations/0002_operations.sql", "migrations/0003_incidents.sql", "seed.sql"]) {
+    for (const file of ["migrations/0001_init.sql", "migrations/0002_operations.sql", "migrations/0003_incidents.sql", "migrations/0004_product_categories.sql", "migrations/0005_opening_items.sql", "seed.sql"]) {
       let statement = "", trigger = false;
       for (const line of (await readFile(new URL(`../${file}`, import.meta.url), "utf8")).split("\n")) {
         if (!statement && (!line.trim() || line.trim().startsWith("--"))) continue;

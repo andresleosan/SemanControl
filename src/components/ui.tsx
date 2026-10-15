@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, Route, Warehouse, ClipboardCheck, Users, CreditCard, WalletCards, ArrowUpRight } from "lucide-react";
+import { LogOut, Route, Warehouse, ClipboardCheck, Users, CreditCard, WalletCards } from "lucide-react";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import type { Role } from "@/lib/auth/types";
 import { api } from "@/lib/client-api";
@@ -24,10 +24,12 @@ export function AppShell({role,children,title,subtitle,dispatchId,hideMobileNav=
   return <div className={`sc-app sc-app-${role.toLowerCase()}${hideMobileNav?" sc-app-focus":""}`}>
     <a className="sc-skip-link" href="#sc-main">Saltar al contenido</a>
     <header className="sc-top">
-      <Link href={destination(links[0][0])} className="sc-brand"><span className="sc-brand-mark"><Route size={24} aria-hidden /></span><span>SemanControl<small>Cuentas claras, en cada puerta</small></span></Link>
-      <div className="sc-top-context"><span className="sc-role-label">{roleLabel}</span><button type="button" className="sc-icon-button" onClick={logout} aria-label="Cerrar sesión"><LogOut size={20} aria-hidden /></button></div>
+      <div className="sc-top-inner">
+        <Link href={destination(links[0][0])} className="sc-brand"><span className="sc-brand-mark"><Route size={24} aria-hidden /></span><span>SemanControl<small>{roleLabel}</small></span></Link>
+        {role!=="CLIENT"&&<nav className="sc-nav" aria-label="Navegación principal">{links.map(([href,label,Icon])=><Link key={href} href={destination(href)} aria-current={active(href)?"page":undefined}><Icon size={21} aria-hidden /><span>{label}</span></Link>)}</nav>}
+        <div className="sc-top-context"><button type="button" className="sc-icon-button" onClick={logout} aria-label="Cerrar sesión"><LogOut size={20} aria-hidden /></button></div>
+      </div>
     </header>
-    {role!=="CLIENT"&&<aside className="sc-sidebar"><p className="sc-nav-caption">{role==="ADMIN"?"Tu negocio":"Tu recorrido"}</p><nav className="sc-nav" aria-label="Navegación principal">{links.map(([href,label,Icon])=><Link key={href} href={destination(href)} aria-current={active(href)?"page":undefined}><Icon size={21} aria-hidden /><span>{label}</span><ArrowUpRight className="sc-nav-arrow" size={16} aria-hidden /></Link>)}</nav><div className="sc-sidebar-note"><WalletCards size={23} aria-hidden /><p>Tarjeta por tarjeta.<br /><strong>Todo en su lugar.</strong></p></div></aside>}
     <main id="sc-main" className="sc-page" tabIndex={-1}><div className="sc-heading"><p className="sc-eyebrow">{roleLabel}</p><h1 tabIndex={-1}>{title}</h1>{subtitle&&<p>{subtitle}</p>}</div>{children}</main>
     <footer className="sc-bottom">SemanControl · Cuentas claras, tarjeta por tarjeta</footer>
   </div>;

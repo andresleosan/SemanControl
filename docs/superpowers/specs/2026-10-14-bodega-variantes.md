@@ -1,0 +1,14 @@
+# Bodega, productos y variantes
+
+Solicitud: simplificar la administración de productos, quitar «Motivo del cambio», agrupar Yogurt con sabores Fresa/Mora/Natural, mostrar porcentaje de ganancia y distinguir bodega de carga de rutas.
+
+- `products` conserva cada unidad vendible y su ID, costo, precio y stock. Nueva categoría normalizada opcional (`product_categories`) representa el producto principal. Productos existentes continúan sin categoría y conservan sus datos; no se inventan sabores ni se reparten existencias.
+- ADMIN crea/edita un producto principal y una variante opcional en el mismo formulario. El servidor crea o reutiliza `category_name` dentro de la misma transacción; no necesita un CRUD separado de categorías. En el contrato de productos, `name` es el nombre propio de la variante cuando hay categoría, o el producto completo cuando no la hay. La lectura administrativa conserva `name` como etiqueta completa y añade `variant_name`, `category_id`, `category_name`.
+- Nombre visible en rutas y nuevas fichas de venta: `Yogurt · Fresa`. El nombre/costo de las ventas anteriores nunca se reescribe.
+- El campo de motivo desaparece del formulario de producto. El servidor registra automáticamente el alta o edición con actor y valores anteriores/nuevos. Los motivos de correcciones de stock, saldos y accesos siguen su flujo existente.
+- Ganancia unitaria = precio fiado − costo. Ganancia sobre costo = ganancia / costo × 100. $12.000 → $18.000 produce $6.000 y 50 %. Costo cero muestra «Sin costo base»; pérdidas muestran porcentaje negativo. No representa cobros recibidos.
+- Pantalla agrupada por producto principal, con variantes. «En bodega» = available_stock; «Asignado a rutas» = reserved_stock; «Existencias totales» = total_stock. Crear un recorrido reserva su carga; entregar al cliente descuenta stock y registra el producto en su ficha. No se duplica inventario al asignar ni devolver.
+- Se retira el formulario general «Compras y existencias». El usuario eligió ingresar cantidades al crear o editar cada producto/variante. El formulario incorpora `stock_qty` (unidades iniciales al crear; unidades a agregar al editar, por defecto cero). Se guarda en un único batch con los precios, categoría y eventos, con UUID de idempotencia en cada guardado; reintentar no duplica stock. No reemplaza unidades asignadas ni edita el historial. Correcciones físicas conservan su endpoint y pueden abrirse desde una acción secundaria del producto con motivo.
+- Alcance local: migración aditiva y reversión documentada, datos existentes preservados. No se aplica a producción, ni se publica o hace push sin la instrucción correspondiente.
+
+Validar variantes independientes, compatibilidad legada, duplicados, nombres históricos, permisos/costos privados, cálculo con cero/pérdida, ingreso idempotente, reservas/devoluciones y UI móvil.

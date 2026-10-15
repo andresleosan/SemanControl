@@ -1,5 +1,43 @@
 # SemanControl — tareas
 
+## Cabecera unificada — 2026-10-14
+
+- [x] Marca, navegación y salida en una sola franja blanca de escritorio; contenido sin barra lateral. Rol junto a la marca, enlaces y estados activos conservados.
+- [x] Navegación inferior móvil conservada; al atender una tarjeta se oculta y la barra de guardado ocupa todo el ancho.
+- [x] Comprobados los tres roles en 320/390/768/1024/1440 px, sin desborde ni superposición; recorrido preservado y salida de sesión con DELETE y retorno a login. Revisión independiente sin bloqueantes.
+- [x] `pnpm verify`: 251/251 Vitest, 43/43 SQLite y 4/4 Pages, total 298; TypeScript, lint y compilación Worker correctos.
+- [x] Builds/cachés retirados; los 34 archivos controlados de persistencia/configuración conservan su SHA-256. Dependencias conservadas.
+
+[Captura de escritorio](docs/design/screenshots/header-admin-1440.png) y [móvil](docs/design/screenshots/header-admin-390.png), con datos ficticios. Entrega a GitHub autorizada; publicación pendiente.
+
+## Tarjetas con deuda inicial por productos — 2026-10-14
+
+- [x] «Margen por período» pasa a filtro plegado de ganancia. Vista principal simplificada a «Deuda pendiente» y «Ganancia de ventas»; retirado el indicador técnico de aperturas originales.
+- [x] Alta y edición tienen formulario exclusivo, sin directorio, filtros, indicadores o historial detrás. Volver conserva la búsqueda; foco inicial espera la carga del catálogo.
+- [x] Quitado «Motivo del alta o cambio»; el servidor conserva auditoría con nota automática y valores antes/después.
+- [x] El usuario confirmó productos entregados anteriormente. Nueva tarjeta permite seleccionar producto/variante, cantidad y precio anterior editable; calcula deuda inicial. Sin productos conserva importe manual, cero o saldo a favor. No se suman ambas alternativas.
+- [x] Importación atómica e idempotente de tarjeta, productos históricos, saldo inicial y auditoría. No descuenta bodega/ruta ni registra ventas o ganancias nuevas. Migración 0005 aditiva; aperturas previas e historial conservados.
+- [x] Historial ADMIN/CLIENT y atención WORKER muestran productos de la deuda inicial con su nombre/precio originales. Los abonos siguen afectando el saldo monetario, sin inventar unidades pendientes actuales.
+- [x] `pnpm verify`: 251/251 Vitest (13 navegador), 43/43 SQLite y 4/4 Pages, total 298; TypeScript, lint y build Worker correctos. Auditoría sin vulnerabilidades conocidas. Caso focal de formulario en cuatro anchos pasa después de agregar capturas.
+- [x] Revisiones independientes de backend y frontend cerradas sin bloqueantes. Corregidos foco durante carga y textos con codificación alterada. Pruebas de respuesta perdida conservan UUID, datos y bloqueo del formulario hasta confirmar.
+- [x] Limpieza final de builds/cachés completada; SHA-256 confirma los 34 archivos controlados de persistencia/configuración intactos. Dependencias conservadas para continuar.
+
+[Diseño](docs/superpowers/specs/2026-10-14-tarjetas-deuda-inicial.md), [recuperación](docs/rollback-tarjetas-deuda-inicial.md) y [captura del detalle inicial](docs/design/screenshots/card-opening-products.png). Entrega a GitHub autorizada; migraciones reales y publicación pendientes.
+
+## Bodega por productos y variantes — 2026-10-14
+
+- [x] Quitado «Motivo del cambio» del formulario de producto. La auditoría registra automáticamente actor y metadatos antes/después.
+- [x] Producto principal con sabores/variantes, costo/precio y existencias independientes. Catálogo agrupado y buscable; nombres completos en carga de rutas y nuevas ventas de la ficha del cliente.
+- [x] Ganancia unitaria y porcentaje sobre costo automáticos: $12.000 → $18.000 = $6.000 y 50 %. Costo cero y pérdidas contemplados.
+- [x] Retirado el formulario general «Compras y existencias». Por elección explícita del usuario, alta/edición integra unidades iniciales/a agregar a bodega en un guardado atómico e idempotente.
+- [x] «En bodega», «Asignado a rutas» y «Existencias totales» distinguen el inventario libre de la carga restante. Reservas, cierres, saldos y ventas históricas preservados.
+- [x] Revisión independiente y regresiones corrigieron auditoría de stock concurrente, énfasis visual de ganancia y reintentos tras respuesta perdida: guardar/corregir conserva solicitud y selección incluso al cambiar de pestaña, sin duplicar ingresos o ajustes.
+- [x] Comprobaciones finales: `pnpm test` 210/210 (incluye 12 de navegador), `pnpm test:db` 37/37, `pnpm test:pages` 4/4; total 251. TypeScript, lint, build Worker y auditoría de dependencias correctos.
+- [x] Cuatro anchos de catálogo (320/390/768/1440), formularios, filtros, ganancia y compatibilidad del flujo despacho/cierre comprobados con componentes reales y D1 efímero. Capturas ficticias preservadas en docs/design.
+- [x] Limpieza final de builds/cachés completada; comparación SHA-256 confirma los 34 archivos controlados de persistencia/configuración sin cambios. Dependencias conservadas para continuar.
+
+Migración aditiva [0004](migrations/0004_product_categories.sql), [diseño](docs/superpowers/specs/2026-10-14-bodega-variantes.md) y [recuperación](docs/rollback-bodega-variantes.md). No se aplicó a datos reales ni se publicó.
+
 ## Consulta de clientes para el trabajador — 2026-10-14
 
 - [x] Sección «Clientes» en la navegación móvil y de escritorio del trabajador; conserva el recorrido al volver a ruta o cuadre.

@@ -360,5 +360,120 @@ class SchemaTests(unittest.TestCase):
                 backup.close()
 
 
+class ProductCategoriesSchemaTests(unittest.TestCase):
+    def setUp(self):
+        self.db = sqlite3.connect(":memory:")
+        self.addCleanup(self.db.close)
+        self.db.execute("PRAGMA foreign_keys = ON")
+        for name in ("0001_init.sql", "0002_operations.sql", "0003_incidents.sql"):
+            self.db.executescript((ROOT / "migrations" / name).read_text(encoding="utf-8"))
+        self.db.executescript(SEED.read_text(encoding="utf-8"))
+
+    def migrate_categories(self):
+        self.db.executescript((ROOT / "migrations" / "0004_product_categories.sql").read_text(encoding="utf-8"))
+
+    def test_additive_migration_preserves_product_ids_stock_routes_and_immutable_history(self):
+        self.db.execute("INSERT INTO ledger_movements(id,idempotency_key,client_id,dispatch_id,worker_user_id,previous_balance,charge_amount,new_balance) VALUES('before','before','client-demo-01','route-demo-2026-10-16','worker-demo-1',65000,5000,70000)")
+        self.db.execute("INSERT INTO movement_items(id,movement_id,product_id,product_name_snapshot,qty,unit_credit_price,subtotal,unit_cost_price) VALUES('before-item','before','product-demo-1','Nombre histórico',1,5000,5000,3200)")
+        before = {table: self.db.execute(f"SELECT * FROM {table} ORDER BY id").fetchall()
+                  for table in ("products", "dispatch_inventory", "ledger_movements", "movement_items")}
+        self.migrate_categories()
+        for table, rows in before.items():
+            actual = self.db.execute(f"SELECT * FROM {table} ORDER BY id").fetchall()
+            if table == "products":
+                actual = [row[:-1] for row in actual]
+            self.assertEqual(actual, rows, table)
+        self.assertEqual(self.db.execute("SELECT category_id FROM products").fetchall(), [(None,)] * 5)
+        self.assertEqual(self.db.execute("PRAGMA foreign_key_check").fetchall(), [])
+
+    def test_categories_and_variant_names_are_unique_without_merging_standalone_products(self):
+        self.migrate_categories()
+        self.db.execute("INSERT INTO product_categories(id,name) VALUES('y','Yogurt')")
+        with self.assertRaises(sqlite3.IntegrityError):
+            self.db.execute("INSERT INTO product_categories(id,name) VALUES('other','YOGURT')")
+        self.db.execute("INSERT INTO products(id,name,cost_price,credit_price,category_id) VALUES('f','Fresa',12000,18000,'y')")
+        with self.assertRaises(sqlite3.IntegrityError):
+            self.db.execute("INSERT INTO products(id,name,cost_price,credit_price,category_id) VALUES('dup',' fRESA ',1,2,'y')")
+        self.db.execute("INSERT INTO products(id,name,cost_price,credit_price) VALUES('simple','Fresa',1,2)")
+        with self.assertRaises(sqlite3.IntegrityError):
+            self.db.execute("UPDATE products SET category_id='missing' WHERE id='simple'")
+        with self.assertRaises(sqlite3.IntegrityError):
+            self.db.execute("INSERT OR REPLACE INTO product_categories(id,name) VALUES('y','Reemplazo')")
+
+    def test_additive_schema_allows_previous_application_queries_and_preserves_data_when_rolling_code_back(self):
+        self.migrate_categories()
+        self.db.execute("INSERT INTO product_categories(id,name) VALUES('y','Yogurt')")
+        self.db.execute("UPDATE products SET name='Fresa',category_id='y' WHERE id='product-demo-1'")
+        self.db.execute("INSERT INTO products(id,name,cost_price,credit_price) VALUES('legacy','Producto simple',1,2)")
+        self.assertEqual(self.db.execute("SELECT name,total_stock FROM products WHERE id='product-demo-1'").fetchone(), ("Fresa", 100))
+        self.assertEqual(self.db.execute("SELECT SUM(remaining_qty) FROM dispatch_inventory WHERE product_id='product-demo-1'").fetchone()[0], 30)
+        self.assertEqual(self.db.execute("SELECT name FROM product_categories WHERE id='y'").fetchone()[0], "Yogurt")
+        self.assertEqual(self.db.execute("PRAGMA foreign_key_check").fetchall(), [])
+
+
+class OpeningItemsSchemaTests(unittest.TestCase):
+    def setUp(self):
+        self.db = sqlite3.connect(":memory:")
+        self.addCleanup(self.db.close)
+        self.db.execute("PRAGMA foreign_keys = ON")
+        for name in ("0001_init.sql", "0002_operations.sql", "0003_incidents.sql", "0004_product_categories.sql"):
+            self.db.executescript((ROOT / "migrations" / name).read_text(encoding="utf-8"))
+        self.db.executescript(SEED.read_text(encoding="utf-8"))
+        self.before = {table: self.db.execute(f"SELECT * FROM {table} ORDER BY id").fetchall()
+                       for table in ("products", "clients", "dispatch_inventory", "ledger_movements", "movement_items")}
+        migration = ROOT / "migrations" / "0005_opening_items.sql"
+        self.assertTrue(migration.is_file(), "Falta la migración aditiva de productos de deuda inicial")
+        self.db.executescript(migration.read_text(encoding="utf-8"))
+        self.db.execute("INSERT INTO clients(id,name,address,address_reference,route_order,current_balance,revision) VALUES('opening-client','Tarjeta','Casa','Reja',11,50000,1)")
+        self.db.execute("INSERT INTO ledger_movements(id,idempotency_key,client_id,worker_user_id,movement_type,previous_balance,adjustment_amount,new_balance,reason,client_sequence) VALUES('opening','opening-key','opening-client','admin-demo','OPENING',0,50000,50000,'Tarjeta creada',1)")
+
+    def line(self, **changes):
+        row = dict(id="line", movement_id="opening", product_id="product-demo-1", product_name_snapshot="Yogurt · Fresa", qty=2, unit_credit_price=18000, subtotal=36000)
+        row.update(changes)
+        self.db.execute(f"INSERT INTO opening_items({','.join(row)}) VALUES({','.join('?' for _ in row)})", tuple(row.values()))
+
+    def test_additive_migration_preserves_existing_data_and_previous_code_queries(self):
+        for table, rows in self.before.items():
+            actual = self.db.execute(f"SELECT * FROM {table} WHERE id NOT IN ('opening-client','opening') ORDER BY id").fetchall()
+            self.assertEqual(actual, rows, table)
+        self.line()
+        self.assertEqual(self.db.execute("SELECT current_balance FROM clients WHERE id='opening-client'").fetchone()[0], 50000)
+        self.assertEqual(self.db.execute("PRAGMA foreign_key_check").fetchall(), [])
+        self.assertNotIn("unit_cost_price", {row[1] for row in self.db.execute("PRAGMA table_info(opening_items)")})
+
+    def test_opening_products_do_not_change_any_inventory_or_create_sales(self):
+        self.line()
+        for table in ("products", "dispatch_inventory", "movement_items"):
+            self.assertEqual(self.db.execute(f"SELECT * FROM {table} ORDER BY id").fetchall(), self.before[table])
+
+    def test_only_opening_movements_accept_historical_products(self):
+        self.db.execute("INSERT INTO ledger_movements(id,idempotency_key,client_id,dispatch_id,worker_user_id,previous_balance,charge_amount,new_balance) VALUES('visit','visit','client-demo-01','route-demo-2026-10-16','worker-demo-1',65000,50000,115000)")
+        for movement_id in ("visit", "missing"):
+            with self.subTest(movement_id=movement_id), self.assertRaises(sqlite3.IntegrityError):
+                self.line(movement_id=movement_id)
+        with self.assertRaises(sqlite3.IntegrityError):
+            self.line(product_id="missing")
+
+    def test_product_identity_and_historical_snapshots_are_immutable(self):
+        self.line()
+        for sql in ("UPDATE opening_items SET qty=1,subtotal=18000", "UPDATE opening_items SET movement_id='missing'", "DELETE FROM opening_items", "INSERT OR REPLACE INTO opening_items(id,movement_id,product_id,product_name_snapshot,qty,unit_credit_price,subtotal) VALUES('line','opening','product-demo-2','Otro',1,1000,1000)", "INSERT OR REPLACE INTO opening_items(id,movement_id,product_id,product_name_snapshot,qty,unit_credit_price,subtotal) VALUES('other','opening','product-demo-1','Otro',1,1000,1000)"):
+            with self.subTest(sql=sql), self.assertRaises(sqlite3.IntegrityError):
+                self.db.execute(sql)
+        self.assertEqual(self.db.execute("SELECT product_name_snapshot,qty,subtotal FROM opening_items").fetchall(), [("Yogurt · Fresa", 2, 36000)])
+
+    def test_subtotals_cannot_exceed_the_initial_balance(self):
+        self.line()
+        with self.assertRaises(sqlite3.IntegrityError):
+            self.line(id="line2", product_id="product-demo-2", qty=1, unit_credit_price=15000, subtotal=15000)
+        self.line(id="line2", product_id="product-demo-2", qty=1, unit_credit_price=14000, subtotal=14000)
+        self.assertEqual(self.db.execute("SELECT SUM(subtotal) FROM opening_items").fetchone()[0], 50000)
+
+    def test_quantities_prices_and_subtotals_require_valid_integers(self):
+        for changes in (dict(qty=0, subtotal=0), dict(qty=1.5, subtotal=27000), dict(qty=100001, unit_credit_price=0, subtotal=0), dict(unit_credit_price=-1, subtotal=-2), dict(unit_credit_price=1.5, subtotal=3), dict(subtotal=35999), dict(product_name_snapshot=" "), dict(id=" ")):
+            with self.subTest(changes=changes), self.assertRaises(sqlite3.IntegrityError):
+                self.line(**changes)
+        self.line(qty=1, unit_credit_price=0, subtotal=0)
+
+
 if __name__ == "__main__":
     unittest.main()

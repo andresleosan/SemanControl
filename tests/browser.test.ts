@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import { writeFile } from "node:fs/promises";
 import { BrowserHarness, dispatchId, principals } from "./browser-fixture/harness";
 import { registerVisit } from "../src/lib/operations/visits";
-import { createDispatch } from "../src/lib/admin/write-model";
+import { createDispatch, saveProduct } from "../src/lib/admin/write-model";
 
 let browser: Browser, harness: BrowserHarness;
 let contexts: BrowserContext[] = [], pages: Page[] = [], pageErrors: string[] = [];
@@ -251,27 +251,174 @@ describe("actual UI against isolated D1/R2 at 390 × 844", () => {
     await mobileLayout(worker); verifyBrowser();
   }, 60000);
 
-  it("creates and edits stock, purchases, reserves a dispatch, adjusts a card and closes only after a worker declaration", async () => {
+  it("creates a focused card with prior product debt without taking stock or inventing profit", async () => {
+    const key = crypto.randomUUID();
+    await saveProduct(harness.db, principals.admin, { idempotency_key: key, name: "Fresa", category_name: "Yogurt", cost_price: 12000, credit_price: 18000, stock_qty: 6 });
+    const productId = `product-${key}`;
+    const admin = await open("admin", "/admin/clientes");
+    await admin.getByRole("button", { name: "Nueva tarjeta", exact: true }).click();
+    await browserExpect(admin.getByLabel("Nombre del cliente", { exact: true })).toBeFocused();
+    await browserExpect(admin.getByLabel("Buscar nombre, dirección, número o correo", { exact: true })).toHaveCount(0);
+    await browserExpect(admin.getByLabel("Motivo del alta o cambio", { exact: true })).toHaveCount(0);
+    await admin.getByLabel("Nombre del cliente", { exact: true }).fill("Deuda anterior QA");
+    await admin.getByLabel("Dirección", { exact: true }).fill("Calle de prueba");
+    await admin.getByLabel("Referencia de la casa", { exact: true }).fill("Reja de prueba");
+    await admin.getByRole("combobox", { name: /^Producto de la deuda anterior/ }).selectOption(productId);
+    await admin.getByRole("button", { name: "Agregar producto", exact: true }).click();
+    await admin.getByLabel("Cantidad de Yogurt · Fresa", { exact: true }).fill("2");
+    await admin.getByLabel("Precio anterior de Yogurt · Fresa (COP)", { exact: true }).fill("15000");
+    await browserExpect(admin.getByLabel("Deuda inicial calculada", { exact: true })).toContainText("30.000");
+    for (const width of [320, 390, 768, 1440]) {
+      await admin.setViewportSize({ width, height: 1100 });
+      expect(await admin.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    }
+    await admin.getByRole("region", { name: "Productos de la deuda anterior", exact: true }).screenshot({ path: resolve(".wrangler/test-browser/admin-card-opening-products.png"), animations: "disabled" });
+    await admin.screenshot({ path: resolve(".wrangler/test-browser/admin-card-form-1440.png"), fullPage: true, animations: "disabled" });
+    await admin.setViewportSize({ width: 390, height: 844 });
+    await admin.getByRole("heading", { name: "Nueva tarjeta", exact: true }).scrollIntoViewIfNeeded();
+    await snapshot(admin, "admin-new-card-debt");
+    await admin.getByRole("button", { name: "Guardar tarjeta", exact: true }).click();
+    await browserExpect(admin.getByText("Tarjeta creada.", { exact: true })).toBeVisible();
+    await browserExpect(admin.getByText("Productos de la deuda inicial", { exact: true })).toBeVisible();
+    await browserExpect(admin.getByText("Yogurt · Fresa", { exact: true })).toBeVisible();
+    const client = await harness.db.prepare("SELECT id,current_balance FROM clients WHERE name='Deuda anterior QA'").first<{ id: string; current_balance: number }>();
+    expect(client!.current_balance).toBe(30000);
+    expect(await harness.db.prepare("SELECT total_stock FROM products WHERE id=?").bind(productId).first()).toEqual({ total_stock: 6 });
+    await browserExpect(admin.getByText("Aperturas heredadas sin detalle", { exact: true })).toHaveCount(0);
+    await admin.getByText("Filtrar ganancia", { exact: true }).click();
+    await browserExpect(admin.getByLabel("Desde", { exact: true })).toBeVisible();
+    await admin.getByText("Filtrar ganancia", { exact: true }).click();
+    await browserExpect(admin.getByLabel("Desde", { exact: true })).not.toBeVisible();
+    await admin.getByLabel("Buscar nombre, dirección, número o correo", { exact: true }).fill("Deuda anterior QA");
+    await admin.getByRole("row").filter({ hasText: "Deuda anterior QA" }).getByRole("button", { name: "Editar", exact: true }).click();
+    await browserExpect(admin.getByLabel("Buscar nombre, dirección, número o correo", { exact: true })).toHaveCount(0);
+    await browserExpect(admin.getByLabel("Motivo del alta o cambio", { exact: true })).toHaveCount(0);
+    await admin.getByRole("button", { name: "Volver a tarjetas", exact: true }).click();
+    await browserExpect(admin.getByLabel("Buscar nombre, dirección, número o correo", { exact: true })).toHaveValue("Deuda anterior QA");
+    for (const width of [320, 390, 768, 1440]) {
+      await admin.setViewportSize({ width, height: 900 });
+      expect(await admin.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    }
+    const worker = await open("worker", `/ruta/cliente/${client!.id}?dispatch_id=${dispatchId}`);
+    await browserExpect(worker.getByText("Productos de la deuda inicial", { exact: true })).toBeVisible();
+    await browserExpect(worker.getByText("Yogurt · Fresa", { exact: true })).toBeVisible();
+    const response = harness.responses.findLast((row) => row.path === `/api/ruta/cliente/${client!.id}`)!;
+    expect(response.body).not.toMatch(/unit_cost|cost_price/);
+    const portfolio = harness.responses.filter((row) => row.path === "/api/admin/clientes" && row.status === 200).at(-1)!;
+    expect(JSON.parse(portfolio.body).estimated_margin).toBe(0);
+    verifyBrowser();
+  }, 60000);
+
+  it("keeps the same warehouse entry after a lost product response and a tab switch", async () => {
     const admin = await open("admin", "/admin/inventario");
-    await admin.getByLabel("Nombre del producto", { exact: true }).fill("Producto QA navegador");
-    await admin.getByLabel("Costo actual (COP)", { exact: true }).fill("2000");
-    await admin.getByLabel("Precio fiado (COP)", { exact: true }).fill("3500");
-    await admin.getByLabel("Motivo del cambio", { exact: true }).fill("Alta sintética QA");
+    await admin.getByLabel("Producto principal", { exact: true }).fill("Yogurt");
+    await admin.getByLabel("Sabor o variante (opcional)", { exact: true }).fill("Natural");
+    await admin.getByLabel("Costo actual (COP)", { exact: true }).fill("12000");
+    await admin.getByLabel("Precio fiado (COP)", { exact: true }).fill("18000");
+    await admin.getByLabel("Unidades iniciales en bodega", { exact: true }).fill("10");
+    await admin.route("**/api/admin/productos", async (route) => { await route.fetch(); await route.abort("failed"); });
     await admin.getByRole("button", { name: "Guardar producto", exact: true }).click();
-    await browserExpect(admin.getByText("Producto creado. Registra una compra para agregar unidades.", { exact: true })).toBeVisible();
-    const product = await harness.db.prepare("SELECT id FROM products WHERE name='Producto QA navegador'").first<{ id: string }>();
-    const productRow = admin.getByRole("row").filter({ hasText: "Producto QA navegador" });
-    await productRow.getByRole("button", { name: "Editar", exact: true }).click();
-    await admin.getByLabel("Precio fiado (COP)", { exact: true }).fill("4000");
-    await admin.getByLabel("Motivo del cambio", { exact: true }).fill("Precio actualizado QA");
+    await browserExpect(admin.getByRole("alert")).toBeVisible();
+    await browserExpect(admin.getByLabel("Unidades iniciales en bodega", { exact: true })).toBeDisabled();
+    await admin.getByRole("button", { name: "Armar recorridos", exact: true }).click();
+    await admin.getByRole("button", { name: "Bodega y costos", exact: true }).click();
+    await browserExpect(admin.getByLabel("Unidades iniciales en bodega", { exact: true })).toHaveValue("10");
+    await admin.unroute("**/api/admin/productos");
+    await admin.getByRole("button", { name: "Reintentar guardado", exact: true }).click();
+    await browserExpect(admin.getByText("Producto creado.", { exact: true })).toBeVisible();
+    expect(await harness.db.prepare("SELECT name,total_stock FROM products WHERE name='Natural'").all()).toMatchObject({ results: [{ name: "Natural", total_stock: 10 }] });
+    expect(await harness.db.prepare("SELECT COUNT(*) n FROM stock_events WHERE reason='Ingreso a bodega al guardar producto'").first()).toEqual({ n: 1 });
+    verifyBrowser();
+  }, 60000);
+
+  it("keeps an uncertain warehouse correction locked until its original request is confirmed", async () => {
+    const admin = await open("admin", "/admin/inventario");
+    await admin.getByRole("region", { name: "Arroz de prueba 1 kg", exact: true }).getByRole("button", { name: "Editar", exact: true }).click();
+    await admin.getByText("Corregir un conteo de bodega", { exact: true }).click();
+    await admin.getByLabel("Diferencia de unidades (+ o −)", { exact: true }).fill("-5");
+    await admin.getByLabel("Motivo de la corrección de bodega", { exact: true }).fill("Conteo sintético QA");
+    await admin.route("**/api/admin/stock", async (route) => { await route.fetch(); await route.abort("failed"); });
+    await admin.getByRole("button", { name: "Corregir conteo", exact: true }).click();
+    await browserExpect(admin.getByRole("alert")).toBeVisible();
+    await browserExpect(admin.getByLabel("Diferencia de unidades (+ o −)", { exact: true })).toBeDisabled();
+    await browserExpect(admin.getByRole("button", { name: "Nuevo producto", exact: true })).toBeDisabled();
+    await admin.getByRole("button", { name: "Armar recorridos", exact: true }).click();
+    await admin.getByRole("button", { name: "Bodega y costos", exact: true }).click();
+    await browserExpect(admin.getByLabel("Diferencia de unidades (+ o −)", { exact: true })).toHaveValue("-5");
+    await admin.unroute("**/api/admin/stock");
+    await admin.getByRole("button", { name: "Reintentar corrección", exact: true }).click();
+    await browserExpect(admin.getByText("Conteo de bodega corregido.", { exact: true })).toBeVisible();
+    expect(await harness.db.prepare("SELECT total_stock FROM products WHERE id='product-demo-1'").first()).toEqual({ total_stock: 95 });
+    expect(await harness.db.prepare("SELECT COUNT(*) n FROM stock_events WHERE reason='Conteo sintético QA'").first()).toEqual({ n: 1 });
+    verifyBrowser();
+  }, 60000);
+
+  it("groups flavors and saves warehouse units with automatic profit in the product form", async () => {
+    const admin = await open("admin", "/admin/inventario");
+    await browserExpect(admin.getByLabel("Producto principal", { exact: true })).toBeVisible();
+    await browserExpect(admin.getByLabel("Motivo del cambio", { exact: true })).toHaveCount(0);
+    await browserExpect(admin.getByRole("heading", { name: "Compras y existencias", exact: true })).toHaveCount(0);
+    await admin.getByLabel("Producto principal", { exact: true }).fill("Yogurt");
+    await admin.getByLabel("Sabor o variante (opcional)", { exact: true }).fill("Fresa");
+    await admin.getByLabel("Costo actual (COP)", { exact: true }).fill("12000");
+    await admin.getByLabel("Precio fiado (COP)", { exact: true }).fill("18000");
+    await admin.getByLabel("Unidades iniciales en bodega", { exact: true }).fill("10");
+    const profit = admin.getByRole("group", { name: "Ganancia calculada", exact: true });
+    await browserExpect(profit).toContainText("6.000");
+    await browserExpect(profit).toContainText("50 %");
+    await admin.getByRole("button", { name: "Guardar producto", exact: true }).click();
+    await browserExpect(admin.getByText("Producto creado.", { exact: true })).toBeVisible();
+    const yogurt = admin.getByRole("region", { name: "Yogurt", exact: true });
+    await browserExpect(yogurt.getByRole("row").filter({ hasText: "Fresa" })).toContainText("50 %");
+    await yogurt.getByRole("button", { name: "Agregar variante", exact: true }).click();
+    await browserExpect(admin.getByLabel("Producto principal", { exact: true })).toHaveValue("Yogurt");
+    await admin.getByLabel("Sabor o variante (opcional)", { exact: true }).fill("Mora");
+    await admin.getByLabel("Costo actual (COP)", { exact: true }).fill("12000");
+    await admin.getByLabel("Precio fiado (COP)", { exact: true }).fill("18000");
+    await admin.getByLabel("Unidades iniciales en bodega", { exact: true }).fill("8");
+    await admin.getByRole("button", { name: "Guardar producto", exact: true }).click();
+    await browserExpect(yogurt.getByRole("row").filter({ hasText: "Mora" })).toBeVisible();
+    await browserExpect(admin.getByRole("region", { name: "Yogurt", exact: true })).toHaveCount(1);
+    await yogurt.getByRole("row").filter({ hasText: "Fresa" }).getByRole("button", { name: "Editar", exact: true }).click();
+    await admin.getByLabel("Unidades para agregar a bodega", { exact: true }).fill("5");
+    await admin.getByLabel("Costo actual (COP)", { exact: true }).fill("0");
+    await browserExpect(profit).toContainText("Sin costo base");
+    await admin.getByLabel("Costo actual (COP)", { exact: true }).fill("12000");
+    await admin.getByRole("region", { name: "Editar Yogurt · Fresa", exact: true }).screenshot({ path: resolve(".wrangler/test-browser/admin-product-editor.png"), animations: "disabled" });
     await admin.getByRole("button", { name: "Guardar producto", exact: true }).click();
     await browserExpect(admin.getByText("Producto guardado.", { exact: true })).toBeVisible();
-    await admin.getByRole("combobox", { name: /^Producto/ }).selectOption(product!.id);
-    await admin.getByLabel("Unidades compradas", { exact: true }).fill("12");
-    await admin.getByLabel("Costo unitario de esta compra (COP)", { exact: true }).fill("2100");
-    await admin.getByLabel("Motivo o referencia", { exact: true }).fill("Compra sintética QA");
-    await admin.getByRole("button", { name: "Registrar compra", exact: true }).click();
-    await browserExpect(admin.getByText("Compra registrada.", { exact: true })).toBeVisible();
+    const rows = (await harness.db.prepare("SELECT p.name,p.total_stock,c.name category FROM products p JOIN product_categories c ON c.id=p.category_id ORDER BY p.name").all()).results;
+    expect(rows).toEqual([{ name: "Fresa", total_stock: 15, category: "Yogurt" }, { name: "Mora", total_stock: 8, category: "Yogurt" }]);
+    for (const width of [320, 390, 768, 1440]) {
+      await admin.setViewportSize({ width, height: 900 });
+      expect(await admin.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+      if (width === 1440) await yogurt.screenshot({ path: resolve(".wrangler/test-browser/admin-product-variants-1440.png"), animations: "disabled" });
+    }
+    await admin.setViewportSize({ width: 390, height: 844 });
+    await yogurt.scrollIntoViewIfNeeded();
+    await snapshot(admin, "admin-product-variants");
+    await admin.getByRole("button", { name: "Armar recorridos", exact: true }).click();
+    await browserExpect(admin.getByLabel("Unidades de Yogurt · Fresa para el recorrido", { exact: true })).toBeVisible();
+    await browserExpect(admin.getByRole("columnheader", { name: "En calle", exact: true })).toHaveCount(0);
+    verifyBrowser();
+  }, 60000);
+
+  it("creates and edits stock in the product form, reserves a dispatch, adjusts a card and closes only after a worker declaration", async () => {
+    const admin = await open("admin", "/admin/inventario");
+    await admin.getByLabel("Producto principal", { exact: true }).fill("Producto QA navegador");
+    await admin.getByLabel("Costo actual (COP)", { exact: true }).fill("2000");
+    await admin.getByLabel("Precio fiado (COP)", { exact: true }).fill("3500");
+    await admin.getByLabel("Unidades iniciales en bodega", { exact: true }).fill("5");
+    await admin.getByRole("button", { name: "Guardar producto", exact: true }).click();
+    await browserExpect(admin.getByText("Producto creado.", { exact: true })).toBeVisible();
+    const product = await harness.db.prepare("SELECT id FROM products WHERE name='Producto QA navegador'").first<{ id: string }>();
+    const productRow = admin.getByRole("region", { name: "Producto QA navegador", exact: true }).getByRole("row").filter({ hasText: "Sin variante" });
+    await productRow.getByRole("button", { name: "Editar", exact: true }).click();
+    await admin.getByLabel("Precio fiado (COP)", { exact: true }).fill("4000");
+    await admin.getByLabel("Costo actual (COP)", { exact: true }).fill("2100");
+    await admin.getByLabel("Unidades para agregar a bodega", { exact: true }).fill("7");
+    await admin.getByRole("button", { name: "Guardar producto", exact: true }).click();
+    await browserExpect(admin.getByText("Producto guardado.", { exact: true })).toBeVisible();
     expect(await harness.db.prepare("SELECT total_stock,cost_price,credit_price FROM products WHERE id=?").bind(product!.id).first()).toEqual({ total_stock: 12, cost_price: 2100, credit_price: 4000 });
     await admin.getByRole("button", { name: "Armar recorridos", exact: true }).click();
     await admin.getByLabel("Nombre del recorrido", { exact: true }).fill("Recorrido QA navegador");
@@ -398,8 +545,7 @@ describe("actual UI against isolated D1/R2 at 390 × 844", () => {
     await admin.getByLabel("Nombre del cliente", { exact: true }).fill("Tarjeta física QA");
     await admin.getByLabel("Dirección", { exact: true }).fill("Calle sintética # 11");
     await admin.getByLabel("Referencia de la casa", { exact: true }).fill("Puerta verde de prueba");
-    await admin.getByLabel("Saldo de apertura de tarjeta física (COP)", { exact: true }).fill("65000");
-    await admin.getByLabel("Motivo del alta o cambio", { exact: true }).fill("Transcripción de tarjeta física sintética");
+    await admin.getByLabel("Saldo anterior sin productos (COP)", { exact: true }).fill("65000");
     await mobileLayout(admin);
     const bodies: Record<string, unknown>[] = [];
     await admin.route("**/api/admin/clientes", async (route) => {
@@ -410,11 +556,13 @@ describe("actual UI against isolated D1/R2 at 390 × 844", () => {
     });
     await admin.getByRole("button", { name: "Guardar tarjeta", exact: true }).click();
     await browserExpect(admin.getByRole("alert")).toBeVisible();
-    await browserExpect(admin.getByLabel("Saldo de apertura de tarjeta física (COP)", { exact: true })).toHaveValue("65000");
+    await browserExpect(admin.getByLabel("Saldo anterior sin productos (COP)", { exact: true })).toHaveValue("65000");
+    await browserExpect(admin.getByLabel("Nombre del cliente", { exact: true })).toBeDisabled();
+    await browserExpect(admin.getByRole("button", { name: "Volver a tarjetas", exact: true })).toBeDisabled();
     const original = await harness.db.prepare("SELECT id,current_balance,revision,route_order FROM clients WHERE name='Tarjeta física QA'").first<{ id: string; current_balance: number; revision: number; route_order: number }>();
     expect(original).toMatchObject({ current_balance: 65000, revision: 1, route_order: 11 });
-    await admin.getByRole("button", { name: "Guardar tarjeta", exact: true }).click();
-    await browserExpect(admin.getByText("Tarjeta creada y saldo de apertura registrado.", { exact: true })).toBeVisible();
+    await admin.getByRole("button", { name: "Reintentar guardado", exact: true }).click();
+    await browserExpect(admin.getByText("Tarjeta creada.", { exact: true })).toBeVisible();
     await browserExpect(admin.getByRole("heading", { name: "Historial y saldo de la tarjeta", exact: true })).toBeVisible();
     expect(bodies).toHaveLength(2); expect(bodies[1].idempotency_key).toBe(bodies[0].idempotency_key); expect(bodies[0].idempotency_key).toMatch(/^[a-f\d-]{36}$/i);
     expect(await harness.db.prepare("SELECT COUNT(*) n FROM clients WHERE name='Tarjeta física QA'").first()).toEqual({ n: 1 });

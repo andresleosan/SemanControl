@@ -65,21 +65,23 @@ export function useMutation() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [uncertain, setUncertain] = useState(false);
   async function run<T>(path: string, payload: Record<string, unknown>, message: string, idempotent = false): Promise<T | null> {
     if (lock.current) return null;
-    lock.current = true; setBusy(true); setError(""); setSuccess("");
+    lock.current = true; setBusy(true); setError(""); setSuccess(""); setUncertain(false);
     const body = idempotent ? drafts.current.prepare(path, payload) : payload;
     try {
       const result = await api<T>(path, { method: "POST", body: JSON.stringify(body) });
       drafts.current.complete(path, payload); setSuccess(message); return result;
     } catch (error) {
+      setUncertain(!(error instanceof ClientApiError && [400, 401, 403, 404, 409, 413, 429].includes(error.status)));
       if (error instanceof ClientApiError && [400, 403, 404, 409].includes(error.status)) drafts.current.complete(path, payload);
       if (error instanceof ClientApiError && [401, 403].includes(error.status)) access.invalidate(errorMessage(error));
       setError(errorMessage(error)); return null;
     }
     finally { lock.current = false; setBusy(false); }
   }
-  return { busy, error, success, run, clear: () => { setError(""); setSuccess(""); } };
+  return { busy, error, success, uncertain, run, clear: () => { setError(""); setSuccess(""); } };
 }
 
 export function ResourceNotice({ loading, error, refresh }: { loading: boolean; error: string; refresh: () => void }) {
@@ -178,7 +180,7 @@ export function Receipt({ id, gallery = false, path }: { id: string; gallery?: b
 
 export function History({ movements, showAdjustmentIds = false }: { movements: Movement[]; showAdjustmentIds?: boolean }) {
   if (!movements.length) return <Notice>Esta tarjeta todavía no tiene movimientos registrados.</Notice>;
-  const labels: Record<string, string> = { VISIT: "Visita", OPENING: "Saldo de apertura", ADJUSTMENT: "Ajuste de saldo", TRANSFER_REVERSAL: "Reverso de transferencia" };
+  const labels: Record<string, string> = { VISIT: "Visita", OPENING: "Saldo inicial", ADJUSTMENT: "Ajuste de saldo", TRANSFER_REVERSAL: "Reverso de transferencia" };
   const days = new Map<string, Movement[]>();
   for (const movement of [...movements].sort((a, b) => b.client_sequence - a.client_sequence)) {
     const date = localDate(movement.created_at);
@@ -206,10 +208,10 @@ export function History({ movements, showAdjustmentIds = false }: { movements: M
             <div><dt>{movement.previous_balance < 0 ? "Saldo anterior a favor" : "Saldo anterior"}</dt><dd><Money value={Math.abs(movement.previous_balance)} /></dd></div>
             {movement.payment_amount > 0 && <div><dt>Abono {movement.payment_method === "CASH" ? "en efectivo" : "por transferencia"}</dt><dd><Money value={movement.payment_amount} /></dd></div>}
             {movement.charge_amount > 0 && <div><dt>Productos</dt><dd><Money value={movement.charge_amount} /></dd></div>}
-            {movement.adjustment_amount !== 0 && <div><dt>Ajuste</dt><dd><Money value={movement.adjustment_amount} /></dd></div>}
+            {movement.adjustment_amount !== 0 && <div><dt>{movement.movement_type === "OPENING" ? "Saldo al crear la tarjeta" : "Ajuste"}</dt><dd><Money value={movement.adjustment_amount} /></dd></div>}
           </dl>
           {movement.items.length > 0 && <div>
-            <h4 className="sc-muted">Productos recibidos</h4>
+            <h4 className="sc-muted">{movement.movement_type === "OPENING" ? "Productos de la deuda inicial" : "Productos recibidos"}</h4>
             <ul className="sc-history-products">
               {movement.items.map((item) => <li className="sc-history-product" key={item.product_id}>
                 <div><strong>{item.product_name_snapshot}</strong><p className="sc-history-product-detail"><span>Cantidad: {item.qty}</span><span>Precio fiado: <Money value={item.unit_credit_price} /></span></p></div>

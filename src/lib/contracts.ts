@@ -9,4 +9,4 @@ export interface Movement {id:string;client_id:string;dispatch_id:string|null;wo
 export interface VisitInput {idempotency_key:string;dispatch_id:string;client_id:string;expected_revision:number;expected_balance:number;payment_amount:number;payment_method:"NONE"|"CASH"|"TRANSFER";receipt_id?:string|null;items:{product_id:string;qty:number;unit_credit_price:number}[]}
 export interface User {id:string;name:string;email:string;role:string;is_active:number}
 export interface Dispatch {id:string;name:string;dispatch_date:string;status:"OPEN"|"CLOSED";workers:{id:string;name:string}[];inventory:RouteProduct[]}
-export interface AdminProduct {id:string;name:string;cost_price:number;credit_price:number;total_stock:number;is_active:number;reserved_stock:number;available_stock:number}
+export interface AdminProduct {id:string;name:string;variant_name:string;category_id:string|null;category_name:string|null;cost_price:number;credit_price:number;total_stock:number;is_active:number;reserved_stock:number;available_stock:number}

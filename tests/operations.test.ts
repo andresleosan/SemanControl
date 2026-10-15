@@ -2,6 +2,9 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { Miniflare, convertV4MiniflareOptions } from "miniflare";
 import { readFile } from "node:fs/promises";
 import { registerVisit } from "../src/lib/operations/visits";
+import { saveClient, saveProduct } from "../src/lib/admin/write-model";
+import { publicHistory, publicMovement } from "../src/lib/operations/read-model";
+import { dispatchInventory, dispatches } from "../src/lib/admin/read-model";
 import { cleanupOrphanReceipts, readReceipt, readReceiptForm, uploadReceipt } from "../src/lib/operations/receipts";
 import { confirmSynchronized, createRouteClient, readRoute, readRouteClient, readRouteSummary, readWorkerClients } from "../src/lib/operations/route";
 
@@ -52,11 +55,21 @@ beforeEach(async () => {
   const operations = await readFile(new URL("../migrations/0002_operations.sql", import.meta.url), "utf8").catch(() => "");
   await migrate(operations);
   await migrate(await readFile(new URL("../migrations/0003_incidents.sql", import.meta.url), "utf8"));
+  await migrate(await readFile(new URL("../migrations/0004_product_categories.sql", import.meta.url), "utf8"));
+  await migrate(await readFile(new URL("../migrations/0005_opening_items.sql", import.meta.url), "utf8"));
   await migrate(await readFile(new URL("../seed.sql", import.meta.url), "utf8"));
 });
 afterEach(async () => { await mf?.dispose(); });
 
 describe("operational schema", () => {
+  it("shows the same historical opening products to workers and customer history without exposing costs", async () => {
+    const created = await saveClient(db, admin, { idempotency_key: crypto.randomUUID(), name: "Nueva tarjeta", address: "Casa", address_reference: "Reja", opening_items: [{ product_id: "product-demo-1", qty: 2, unit_credit_price: 17000 }] });
+    const history = await publicHistory(db, created.id);
+    expect(history[0].items).toEqual([{ product_id: "product-demo-1", product_name_snapshot: "Arroz de prueba 1 kg", qty: 2, unit_credit_price: 17000, subtotal: 34000 }]);
+    expect(await publicMovement(db, history[0].id)).toEqual(history[0]);
+    expect((await readRouteClient(db, worker, created.id, dispatch)).history).toEqual(history);
+    expect(JSON.stringify(history)).not.toMatch(/cost_price|firebase_uid|request_hash|receipt_r2_key/);
+  });
   it("does not create a customer card using an ADMIN or WORKER reserved email", async () => {
     const { createRouteClient } = await import("../src/lib/operations/route");
     await expect(createRouteClient(db, worker, { name: "Cliente", address: "Casa", address_reference: "Reja", linked_email: "admin@semancontrol.example" })).rejects.toMatchObject({ status: 409 });
@@ -69,6 +82,23 @@ describe("operational schema", () => {
 });
 
 describe("atomic visit operations", () => {
+  it("shows the complete variant name in routes and preserves historical names and private costs after an edit", async () => {
+    const legacy = await registerVisit(db, worker, visit());
+    const originalName=legacy.movement.items[0].product_name_snapshot;
+    await saveProduct(db, admin, {id:"product-demo-1",name:"Fresa",category_name:"Yogurt",cost_price:12000,credit_price:18000,reason:"Clasificar"});
+    const route=await readRoute(db,worker,dispatch);
+    expect(route.inventory.find(row=>row.id==="product-demo-1")).toMatchObject({name:"Yogurt · Fresa",credit_price:18000});
+    expect((await dispatchInventory(db,dispatch)).find(row=>row.id==="product-demo-1")?.name).toBe("Yogurt · Fresa");
+    expect((await dispatches(db)).find(row=>row.id===dispatch)?.inventory.find(row=>row.id==="product-demo-1")?.name).toBe("Yogurt · Fresa");
+    const sale=await registerVisit(db,worker,visit({expected_revision:1,items:[{product_id:"product-demo-1",qty:1,unit_credit_price:18000}]}));
+    expect(sale.movement.items).toEqual([{product_id:"product-demo-1",product_name_snapshot:"Yogurt · Fresa",qty:1,unit_credit_price:18000,subtotal:18000}]);
+    await saveProduct(db,admin,{id:"product-demo-1",name:"Fresa grande",category_name:"Lácteos",cost_price:14000,credit_price:20000,reason:"Actualizar"});
+    const detail=await readRouteClient(db,worker,"client-demo-01",dispatch);
+    expect(detail.history.find(row=>row.id===legacy.movement.id)?.items[0].product_name_snapshot).toBe(originalName);
+    expect(detail.history.find(row=>row.id===sale.movement.id)?.items[0].product_name_snapshot).toBe("Yogurt · Fresa");
+    expect(await db.prepare("SELECT unit_cost_price FROM movement_items WHERE movement_id=?").bind(sale.movement.id).first()).toEqual({unit_cost_price:12000});
+    expect(JSON.stringify({route,sale,detail})).not.toMatch(/cost_price|category_id|receipt_r2_key/);
+  });
   it("posts one accounting movement, both stock deductions and a private cost snapshot", async () => {
     const result = await registerVisit(db, worker, visit());
     expect(result).toMatchObject({ replayed: false, movement: { previous_balance: 65000, payment_amount: 10000, charge_amount: 10000, new_balance: 65000, client_sequence: 1 } });

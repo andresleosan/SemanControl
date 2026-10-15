@@ -37,6 +37,7 @@ export class OperationDrafts {
   complete(path: string, payload: Record<string, unknown>): void { this.bodies.delete(this.fingerprint(path, payload)); }
 }
 import type { VisitInput } from "@/lib/contracts";
+import { type OpeningDraftItem, prepareOpeningItems } from "./clientes/opening-model";
 
 
 export function incidentReviewPrefill(id: string, visit: VisitInput): { client_id: string; delta: number; reason: string } {
@@ -54,14 +55,27 @@ export function prepareIncidentResolution(id: string, visit: VisitInput, reason:
 
 export interface ClientEditorValues {
   id: string; name: string; address: string; address_reference: string; route_order: string;
-  linked_email: string; is_active: boolean; reason: string; opening_balance: string;
+  linked_email: string; is_active: boolean; reason?: string; opening_balance: string; opening_items?: OpeningDraftItem[];
 }
 export function prepareClientSave(form: ClientEditorValues): Record<string, unknown> {
-  const openingBalance = Number(form.opening_balance);
-  if (!form.id && (!form.opening_balance.trim() || !Number.isSafeInteger(openingBalance))) throw new Error("El saldo de apertura debe ser un importe entero en pesos, positivo, cero o a favor.");
+  if (form.id && form.opening_items?.length) throw new Error("Los productos de la deuda inicial solo se registran al crear la tarjeta.");
+  const opening = prepareOpeningItems(form.opening_items ?? []);
+  let openingPayload: Record<string, unknown> = {};
+  if (!form.id) {
+    const openingBalance = Number(form.opening_balance);
+    if (opening.items.length) {
+      if (openingBalance !== 0) throw new Error("El saldo manual debe ser cero al registrar productos de la deuda inicial.");
+      openingPayload = { opening_items: opening.items };
+    } else {
+      if (!form.opening_balance.trim() || !Number.isSafeInteger(openingBalance) || Math.abs(openingBalance) > 1_000_000_000) {
+        throw new Error("El saldo de apertura debe ser un importe entero entre -1000000000 y 1000000000 pesos.");
+      }
+      openingPayload = { opening_balance: openingBalance };
+    }
+  }
   return {
-    ...(form.id ? { id: form.id, route_order: Number(form.route_order) } : { opening_balance: openingBalance }),
+    ...(form.id ? { id: form.id, route_order: Number(form.route_order) } : openingPayload),
     name: form.name.trim(), address: form.address.trim(), address_reference: form.address_reference.trim(),
-    linked_email: form.linked_email.trim().toLowerCase() || null, is_active: form.is_active ? 1 : 0, reason: form.reason.trim(),
+    linked_email: form.linked_email.trim().toLowerCase() || null, is_active: form.is_active ? 1 : 0,
   };
 }

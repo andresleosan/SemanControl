@@ -68,7 +68,7 @@ export class BrowserHarness {
     this.mf = new Miniflare(convertV4MiniflareOptions({ modules: true, script: "export default {fetch(){return new Response('fixture')}}", compatibilityDate: "2026-10-14", d1Databases: ["DB"], r2Buckets: ["RECEIPTS_BUCKET"] }));
     this.db = await this.mf.getD1Database("DB") as unknown as D1Database;
     this.bucket = await this.mf.getR2Bucket("RECEIPTS_BUCKET") as unknown as R2Bucket;
-    for (const name of ["migrations/0001_init.sql", "migrations/0002_operations.sql", "migrations/0003_incidents.sql", "seed.sql"]) await migrate(this.db, await readFile(resolve(name), "utf8"));
+    for (const name of ["migrations/0001_init.sql", "migrations/0002_operations.sql", "migrations/0003_incidents.sql", "migrations/0004_product_categories.sql", "migrations/0005_opening_items.sql", "seed.sql"]) await migrate(this.db, await readFile(resolve(name), "utf8"));
     this.server = createServer(async (incoming, outgoing) => {
       try {
         const url = new URL(incoming.url ?? "/", this.origin);

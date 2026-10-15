@@ -10,9 +10,21 @@ Los costos de cada venta se copian dentro de D1 a `movement_items.unit_cost_pric
 
 Las secciones posteriores documentan la base de Fase 1 y su verificación original; los antiguos requisitos para Fase 2 ya tienen implementación y pruebas.
 
+La migración aditiva 0004 organiza productos por categoría opcional. `product_categories(id,name,created_at)` guarda el producto principal (por ejemplo, Yogurt) y `products.category_id` lo referencia. `products.name` sigue representando la unidad vendible (Fresa); cada variante conserva su propio `products.id`, costo, precio y stock. Un producto simple existente permanece con categoría NULL y conserva sus datos. No se dividen automáticamente los productos ni se reparten unidades al migrar. Los índices evitan categorías repetidas y variantes repetidas dentro de una categoría ignorando mayúsculas ASCII y espacios de borde. No hay eliminación o edición separada de categorías: guardar una variante crea/reutiliza su producto principal en el mismo batch.
+
+Las lecturas de ruta y administración forman la etiqueta `Yogurt · Fresa`; la lectura ADMIN añade nombre propio y categoría para editar sin descomponer texto visible. Al vender se copia la etiqueta completa a `movement_items.product_name_snapshot` dentro de D1. Cambiar categoría, nombre o costo después no modifica ninguna venta anterior. Los costos y porcentajes continúan restringidos a ADMIN.
+
+Guardar un producto admite unidades adicionales a bodega mediante `stock_qty`: los metadatos, el incremento de `total_stock`, el evento stock y la auditoría se guardan atómicamente. Una clave UUID impide duplicar ingresos al reintentar; la carga de rutas no se modifica. El motivo de este guardado/ingreso se genera automáticamente, manteniendo actor, valores anteriores/nuevos y cantidades. El snapshot administrativo previo contiene solo metadatos; las transiciones exactas de existencias se registran en `stock_events.previous_stock/new_stock` dentro del batch, para incluir cualquier entrega o ingreso concurrente anterior. Los motivos para correcciones físicas y financieras conservan su validación. Ganancia unitaria = precio fiado − costo; ganancia sobre costo = ganancia / costo × 100 (12.000 → 18.000: 6.000 y 50 %). Costo cero no produce porcentaje; una pérdida produce porcentaje negativo. Esto no representa dinero cobrado. [Reversión de bodega y variantes](rollback-bodega-variantes.md).
+
 La migración inicial conserva las ocho tablas de la especificación. Los ajustes aprobados para Fase 1 añaden activación de usuarios, reservas verificables, referencias obligatorias y un ledger que representa aperturas, ajustes y reversos. El dinero se almacena en pesos enteros; las cantidades también son enteras. Las restricciones `typeof(...)= 'integer'` impiden decimales almacenados por la afinidad flexible de SQLite.
 
 ## Tablas y vínculos
+
+La migración aditiva 0005 incorpora `opening_items(id,movement_id,product_id,product_name_snapshot,qty,unit_credit_price,subtotal)` para documentar productos entregados **antes** de registrar una tarjeta. Cada fila referencia su OPENING y un producto/variante existente, incluso inactivo; guarda nombre completo, cantidad y precio fiado histórico confirmado por ADMIN. Los precios vigentes y las existencias no restringen una deuda anterior. El total se calcula en servidor y se registra en `clients.current_balance` y `ledger_movements.adjustment_amount` en el mismo batch que los detalles y la auditoría. Con productos no se admite un saldo manual simultáneo; sin productos se mantiene la apertura monetaria original, incluido el saldo a favor.
+
+La tabla no tiene columna de costo: no se deduce el costo histórico a partir del catálogo actual. Crear una tarjeta con estos detalles no mueve inventario, no ocupa carga de ruta y no registra una venta nueva; por ello tampoco modifica el margen de ventas. No cambia el esquema o historial existente de `movement_items`. Las restricciones exigen números enteros, cantidad 1–100.000, precio/subtotal no negativo hasta 1.000.000.000, producto único por apertura, referencia a OPENING y suma no mayor que el importe de apertura. Una guarda final del servicio exige suma exacta y revierte el batch completo ante un producto inexistente. Las líneas no se actualizan ni eliminan y REPLACE no puede sobrescribirlas.
+
+Los historiales ADMIN, WORKER y CLIENT devuelven esos snapshots mediante `Movement.items` con las mismas columnas públicas que las ventas. «Productos de la deuda inicial» describe el origen: los abonos posteriores afectan el saldo global y no se imputan a unidades individuales. No se muestran esas cantidades como productos actualmente pendientes. El motivo de alta/edición se genera en servidor y el motivo explícito anterior sigue admitido. La idempotencia del alta compara únicamente los datos normalizados de la solicitud y conserva el resultado ante reintentos, incluso después de renombrar/desactivar productos, modificar precios o recibir abonos. [Reversión de tarjetas y deuda inicial](rollback-tarjetas-deuda-inicial.md).
 
 | Tabla | Responsabilidad y claves |
 | --- | --- |
@@ -24,6 +36,7 @@ La migración inicial conserva las ocho tablas de la especificación. Los ajuste
 | `dispatch_inventory` | Carga única por recorrido/producto; `0 <= remaining_qty <= initial_qty`. |
 | `ledger_movements` | Historial contable e idempotencia única; referencia a tarjeta, responsable, recorrido opcional y movimiento revertido. |
 | `movement_items` | Cantidad, nombre y precio históricos de un producto; subtotal exacto; producto único por movimiento. |
+| `opening_items` | Productos de una deuda anterior, asociados exclusivamente a OPENING; snapshots inmutables sin costo ni movimiento de inventario. |
 
 Las claves foráneas conservan el historial y rechazan referencias inexistentes. D1 las activa; los consumidores SQLite deben activar `PRAGMA foreign_keys = ON`. Los índices cubren orden de tarjetas, cargas por producto, recorridos del trabajador, historial del cliente y revisión de transferencias. D1 no ofrece permisos SQL por rol: el servidor verifica identidad y usa columnas explícitas. `cost_price` solo puede entrar en proyecciones y respuestas ADMIN.
 
@@ -31,7 +44,7 @@ Los emails se guardan como `lower(trim(email))`; la aplicación normaliza antes 
 
 ## Inventario y cierre
 
-`products.total_stock` incluye bodega y calle. La reserva actual de un producto es `SUM(dispatch_inventory.remaining_qty)` únicamente en recorridos OPEN. Disponible en bodega = total menos reserva. Los triggers de inserción/actualización consultan todas las cargas del producto dentro de la misma escritura: dos recorridos no pueden reservar más unidades que las existentes. Las identidades de las filas de carga son inmutables; para otro producto o recorrido se crea otra fila.
+`products.total_stock` incluye bodega y unidades asignadas a rutas. La reserva actual de un producto es `SUM(dispatch_inventory.remaining_qty)` únicamente en recorridos OPEN. Disponible en bodega = total menos reserva. Los triggers de inserción/actualización consultan todas las cargas del producto dentro de la misma escritura: dos recorridos no pueden reservar más unidades que las existentes. Las identidades de las filas de carga son inmutables; para otro producto o recorrido se crea otra fila.
 
 | Operación | Reserva | Stock total |
 | --- | --- | --- |

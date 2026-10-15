@@ -11,7 +11,8 @@ async function withItems(db: D1Database, rows: Omit<Movement, "items">[]): Promi
   const grouped = new Map<string, MovementItem[]>();
   for (let start = 0; start < rows.length; start += 50) {
     const ids = rows.slice(start, start + 50).map((row) => row.id);
-    const result = await db.prepare(`SELECT movement_id, ${ITEM_COLUMNS} FROM movement_items WHERE movement_id IN (${ids.map(() => "?").join(",")}) ORDER BY id`).bind(...ids).all<MovementItem & { movement_id: string }>();
+    const placeholders = ids.map(() => "?").join(",");
+    const result = await db.prepare(`SELECT movement_id, ${ITEM_COLUMNS} FROM movement_items WHERE movement_id IN (${placeholders}) UNION ALL SELECT movement_id, ${ITEM_COLUMNS} FROM opening_items WHERE movement_id IN (${placeholders}) ORDER BY movement_id,product_id`).bind(...ids, ...ids).all<MovementItem & { movement_id: string }>();
     for (const row of result.results) {
       const { movement_id, ...item } = row;
       grouped.set(movement_id, [...(grouped.get(movement_id) ?? []), item]);
@@ -29,7 +30,7 @@ export async function publicMovement(db: D1Database, movementId: string): Promis
   return (await withItems(db, [row]))[0];
 }
 export async function routeInventory(db: D1Database, dispatchId: string): Promise<RouteProduct[]> {
-  const { results } = await db.prepare("SELECT p.id, p.name, p.credit_price, i.remaining_qty, i.initial_qty FROM dispatch_inventory i JOIN products p ON p.id = i.product_id WHERE i.dispatch_id = ? ORDER BY p.name, p.id")
+  const { results } = await db.prepare("SELECT p.id, CASE WHEN c.id IS NULL THEN p.name ELSE c.name || ' · ' || p.name END name, p.credit_price, i.remaining_qty, i.initial_qty FROM dispatch_inventory i JOIN products p ON p.id = i.product_id LEFT JOIN product_categories c ON c.id = p.category_id WHERE i.dispatch_id = ? ORDER BY name, p.id")
     .bind(dispatchId).all<RouteProduct>();
   return results;
 }

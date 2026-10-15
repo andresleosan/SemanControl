@@ -64,7 +64,7 @@ export async function registerVisit(db: D1Database, principal: Principal, body: 
     .bind(movementId, input.idempotency_key, input.client_id, input.dispatch_id, principal.userId, input.expected_balance, input.payment_amount, input.payment_method, input.receipt_id ?? null, input.payment_method === "TRANSFER" ? "PENDING" : "NOT_APPLICABLE", charge, nextBalance, input.expected_revision + 1, hash));
   for (const item of input.items) {
     // Cost is copied inside D1. It is never fetched into this public service.
-    statements.push(db.prepare("INSERT INTO movement_items(id, movement_id, product_id, product_name_snapshot, qty, unit_credit_price, subtotal, unit_cost_price) SELECT ?, ?, id, name, ?, credit_price, ? * credit_price, cost_price FROM products WHERE id = ? AND is_active = 1 AND credit_price = ?")
+    statements.push(db.prepare("INSERT INTO movement_items(id, movement_id, product_id, product_name_snapshot, qty, unit_credit_price, subtotal, unit_cost_price) SELECT ?, ?, p.id, CASE WHEN c.id IS NULL THEN p.name ELSE c.name || ' · ' || p.name END, ?, p.credit_price, ? * p.credit_price, p.cost_price FROM products p LEFT JOIN product_categories c ON c.id = p.category_id WHERE p.id = ? AND p.is_active = 1 AND p.credit_price = ?")
       .bind(crypto.randomUUID(), movementId, item.qty, item.qty, item.product_id, item.unit_credit_price));
     check("changes() = 1");
   }

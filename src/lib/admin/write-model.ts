@@ -10,16 +10,32 @@ function active(value:unknown){return value===undefined?1:integer(value,"el esta
 function date(value:unknown){const result=text(value,"la fecha",10);const parsed=new Date(`${result}T12:00:00Z`);if(!/^\d{4}-\d{2}-\d{2}$/.test(result)||!Number.isFinite(parsed.getTime())||parsed.toISOString().slice(0,10)!==result)throw new ApiError(400,"INVALID_DATE","Revisa la fecha del recorrido.");return result;}
 function array(value:unknown,label:string,max=100):unknown[]{if(!Array.isArray(value)||value.length===0||value.length>max)throw new ApiError(400,"INVALID_FIELD",`Revisa ${label}.`);return value;}
 function object(value:unknown):Input{if(!value||typeof value!=="object"||Array.isArray(value))throw new ApiError(400,"INVALID_FIELD","Revisa los productos.");return value as Input;}
-async function productRow(db:D1Database,id:string){const row=await db.prepare("SELECT id,name,cost_price,credit_price,total_stock,is_active FROM products WHERE id=?").bind(id).first<{id:string;name:string;cost_price:number;credit_price:number;total_stock:number;is_active:number}>();if(!row)throw new ApiError(404,"PRODUCT_NOT_FOUND","No se encontró el producto.");return row;}
+// Previous audit metadata excludes stock: its exact transition is captured by
+// stock_events inside the batch, after any concurrent delivery or ingress.
+async function productRow(db:D1Database,id:string){const row=await db.prepare("SELECT p.id,p.name,p.cost_price,p.credit_price,p.is_active,p.category_id,c.name category_name FROM products p LEFT JOIN product_categories c ON c.id=p.category_id WHERE p.id=?").bind(id).first<{id:string;name:string;cost_price:number;credit_price:number;is_active:number;category_id:string|null;category_name:string|null}>();if(!row)throw new ApiError(404,"PRODUCT_NOT_FOUND","No se encontró el producto.");return row;}
 
 export async function saveProduct(db:D1Database,p:Principal,input:Input){
- const id=input.id===undefined?crypto.randomUUID():text(input.id,"el producto",100);
+ const stockQty=integer(input.stock_qty===undefined?0:input.stock_qty,"las unidades a agregar",0,1_000_000);
+ const operationKey=input.idempotency_key===undefined?undefined:uuid(input.idempotency_key);
+ if(stockQty>0&&!operationKey)throw new ApiError(400,"INVALID_UUID","La clave de la operación es necesaria para agregar unidades.");
+ const id=input.id===undefined?(operationKey?`product-${operationKey}`:crypto.randomUUID()):text(input.id,"el producto",100);
  const next={name:text(input.name,"el nombre",140),cost_price:integer(input.cost_price,"el costo"),credit_price:integer(input.credit_price,"el precio fiado"),is_active:active(input.is_active)};
- const reason=text(input.reason,"el motivo",500);const old=input.id?await productRow(db,id):null;
- return mutation(db,p,"PRODUCT_SAVE",{id,...next,reason},undefined,{ok:true},b=>{
-  if(old){b.add("UPDATE products SET name=?,cost_price=?,credit_price=?,is_active=? WHERE id=? AND name=? AND cost_price=? AND credit_price=? AND is_active=?",next.name,next.cost_price,next.credit_price,next.is_active,id,old.name,old.cost_price,old.credit_price,old.is_active);b.changed();}
-  else b.add("INSERT INTO products(id,name,cost_price,credit_price,is_active) VALUES(?,?,?,?,?)",id,next.name,next.cost_price,next.credit_price,next.is_active);
-  b.audit(p,"PRODUCT_SAVE",id,reason,old,next);
+ const categoryRequest=input.category_name===undefined?undefined:input.category_name===null||input.category_name===""||(typeof input.category_name==="string"&&!input.category_name.trim())?null:text(input.category_name,"el producto principal",140);
+ const automaticReason=input.id===undefined?"Producto creado":"Producto actualizado";
+ const reason=input.reason===undefined||(typeof input.reason==="string"&&!input.reason.trim())?automaticReason:text(input.reason,"el motivo",500);
+ const old=input.id===undefined?null:await productRow(db,id);
+ const categoryName=categoryRequest===undefined?old?.category_name??null:categoryRequest;
+ // Hash only request data: replay must survive later price/category changes.
+ return mutation(db,p,"PRODUCT_SAVE",{id:input.id===undefined?null:id,...next,category_name:categoryRequest??null,category_provided:categoryRequest!==undefined,stock_qty:stockQty,reason},operationKey,{ok:true},b=>{
+  if(categoryName)b.add("INSERT INTO product_categories(id,name) VALUES(?,?) ON CONFLICT(name) DO NOTHING",crypto.randomUUID(),categoryName);
+  const categorySql="(SELECT id FROM product_categories WHERE name=? COLLATE NOCASE)";
+  if(old){b.add(`UPDATE products SET name=?,cost_price=?,credit_price=?,is_active=?,category_id=${categorySql} WHERE id=? AND name=? AND cost_price=? AND credit_price=? AND is_active=? AND category_id IS ?`,next.name,next.cost_price,next.credit_price,next.is_active,categoryName,id,old.name,old.cost_price,old.credit_price,old.is_active,old.category_id);b.changed();}
+  else b.add(`INSERT INTO products(id,name,cost_price,credit_price,is_active,category_id) VALUES(?,?,?,?,?,${categorySql})`,id,next.name,next.cost_price,next.credit_price,next.is_active,categoryName);
+  if(stockQty){
+   b.add("INSERT INTO stock_events(id,actor_id,product_id,delta,previous_stock,new_stock,reason) SELECT ?,?,id,?,total_stock,total_stock+?,'Ingreso a bodega al guardar producto' FROM products WHERE id=?",crypto.randomUUID(),p.userId,stockQty,stockQty,id);b.changed();
+   b.add("UPDATE products SET total_stock=total_stock+? WHERE id=?",stockQty,id);b.changed();
+  }
+  b.add("INSERT INTO audit_events(id,actor_id,action,entity_id,reason,previous_json,next_json) SELECT ?,?,'PRODUCT_SAVE',?,?,?,json_object('name',p.name,'cost_price',p.cost_price,'credit_price',p.credit_price,'is_active',p.is_active,'category_id',p.category_id,'category_name',c.name,'total_stock',p.total_stock,'stock_qty',?) FROM products p LEFT JOIN product_categories c ON c.id=p.category_id WHERE p.id=?",crypto.randomUUID(),p.userId,id,reason,JSON.stringify(old),stockQty,id);b.changed();
  });
 }
 export async function changeStock(db:D1Database,p:Principal,input:Input,purchase:boolean){
@@ -60,14 +76,27 @@ export async function saveWorker(db:D1Database,p:Principal,input:Input){
  });
 }
 export async function saveClient(db:D1Database,p:Principal,input:Input){
- const id=input.id===undefined?crypto.randomUUID():text(input.id,"la tarjeta",100),name=text(input.name,"el nombre",140),address=text(input.address,"la dirección",240),reference=text(input.address_reference,"la referencia",240),linkedEmail=email(input.linked_email),isActive=active(input.is_active),reason=text(input.reason,"el motivo",500);
+ const id=input.id===undefined?crypto.randomUUID():text(input.id,"la tarjeta",100),name=text(input.name,"el nombre",140),address=text(input.address,"la dirección",240),reference=text(input.address_reference,"la referencia",240),linkedEmail=email(input.linked_email),isActive=active(input.is_active);
+ const automaticReason=input.id===undefined?"Tarjeta creada":"Tarjeta actualizada";
+ const reason=input.reason===undefined||(typeof input.reason==="string"&&!input.reason.trim())?automaticReason:text(input.reason,"el motivo",500);
+ if(input.id!==undefined&&(input.opening_balance!==undefined||input.opening_items!==undefined))throw new ApiError(400,"OPENING_ONLY_ON_CREATE","La deuda inicial se fija al crear la tarjeta. Usa un ajuste con motivo para corregirla.");
+ if(input.opening_items!==undefined&&(!Array.isArray(input.opening_items)||input.opening_items.length>50))throw new ApiError(400,"INVALID_OPENING_ITEMS","Revisa los productos de la deuda inicial.");
+ const openingItems=((input.opening_items??[]) as unknown[]).map(value=>{
+  const row=object(value);
+  if(Object.keys(row).some(key=>!["product_id","qty","unit_credit_price"].includes(key)))throw new ApiError(400,"INVALID_OPENING_ITEMS","Revisa los productos de la deuda inicial.");
+  const item={product_id:text(row.product_id,"el producto",100),qty:integer(row.qty,"la cantidad",1,100_000),unit_credit_price:integer(row.unit_credit_price,"el precio fiado anterior")};
+  integer(item.qty*item.unit_credit_price,"el importe del producto");return item;
+ }).sort((a,b)=>a.product_id.localeCompare(b.product_id));
+ if(new Set(openingItems.map(item=>item.product_id)).size!==openingItems.length)throw new ApiError(400,"DUPLICATE_ITEMS","Cada producto debe aparecer una sola vez en la deuda inicial.");
+ if(openingItems.length&&input.opening_balance!==undefined)throw new ApiError(400,"AMBIGUOUS_OPENING","Selecciona productos o escribe un saldo anterior, sin combinar ambos.");
  const old=input.id?await clientRow(db,id):null,order=input.route_order===undefined?old?.route_order??null:integer(input.route_order,"el orden",1,1_000_000);
- if(old&&input.opening_balance!==undefined)throw new ApiError(400,"OPENING_ONLY_ON_CREATE","El saldo de apertura se fija al crear la tarjeta. Usa un ajuste con motivo para corregirla.");
- const openingBalance=old?0:integer(input.opening_balance??0,"el saldo de apertura",-1_000_000_000,1_000_000_000);
- const operationKey=old?undefined:uuid(input.idempotency_key);
+ const openingBalance=old?0:openingItems.length?integer(openingItems.reduce((sum,item)=>sum+item.qty*item.unit_credit_price,0),"la deuda inicial"):integer(input.opening_balance??0,"el saldo de apertura",-1_000_000_000,1_000_000_000);
+ const operationKey=old?(input.idempotency_key===undefined?undefined:uuid(input.idempotency_key)):uuid(input.idempotency_key);
  const privateOld=old?await db.prepare("SELECT firebase_uid FROM clients WHERE id=?").bind(id).first():null;
  const target=old&&order!==old.route_order?await db.prepare("SELECT id,route_order,revision FROM clients WHERE route_order=? AND id<>?").bind(order,id).first<{id:string;route_order:number;revision:number}>():null;
- return mutation(db,p,"CLIENT_SAVE",{id:old?id:null,name,address,reference,linkedEmail,isActive,order,reason,openingBalance},operationKey,{id},b=>{
+ // Only requested values enter the hash; replay survives catalog changes and
+ // subsequent balance/order changes. Preserve the legacy manual-opening hash.
+ return mutation(db,p,"CLIENT_SAVE",{id:old?id:null,name,address,reference,linkedEmail,isActive,order:old&&input.route_order===undefined?null:order,reason,openingBalance,...(openingItems.length?{openingItems}:{})},operationKey,{id},b=>{
   if(linkedEmail)b.guard("NOT EXISTS(SELECT 1 FROM users WHERE email=?)",linkedEmail);
   if(old){
    if(target){b.add("UPDATE clients SET route_order=(SELECT MAX(route_order)+1 FROM clients) WHERE id=? AND revision=?",target.id,target.revision);b.changed();}
@@ -75,10 +104,17 @@ export async function saveClient(db:D1Database,p:Principal,input:Input){
    if(old.linked_email!==linkedEmail||!isActive)b.add("UPDATE link_tokens SET consumed_at=datetime('now') WHERE client_id=? AND consumed_at IS NULL",id);
    if(target){b.add("UPDATE clients SET route_order=?,revision=revision+1 WHERE id=? AND revision=?",old.route_order,target.id,target.revision);b.changed();b.audit(p,"CLIENT_ORDER_SWAP",target.id,reason,{route_order:target.route_order},{route_order:old.route_order});}
   }else{
+   const movementId=crypto.randomUUID();
    b.add("INSERT INTO clients(id,name,address,address_reference,route_order,linked_email,is_active,current_balance,revision) VALUES(?,?,?,?,COALESCE(?,(SELECT COALESCE(MAX(route_order),0)+1 FROM clients)),?,?,?,1)",id,name,address,reference,order,linkedEmail,isActive,openingBalance);
-   b.add("INSERT INTO ledger_movements(id,idempotency_key,client_id,worker_user_id,movement_type,previous_balance,adjustment_amount,new_balance,reason,client_sequence) VALUES(?,?,?,?,'OPENING',0,?,?,?,1)",crypto.randomUUID(),crypto.randomUUID(),id,p.userId,openingBalance,openingBalance,reason);
+   b.add("INSERT INTO ledger_movements(id,idempotency_key,client_id,worker_user_id,movement_type,previous_balance,adjustment_amount,new_balance,reason,client_sequence) VALUES(?,?,?,?,'OPENING',0,?,?,?,1)",movementId,crypto.randomUUID(),id,p.userId,openingBalance,openingBalance,reason);
+   for(const item of openingItems){
+    // Historical prices are supplied by the administrator. Current costs,
+    // activity and stock do not describe these earlier deliveries.
+    b.add("INSERT INTO opening_items(id,movement_id,product_id,product_name_snapshot,qty,unit_credit_price,subtotal) SELECT ?,?,p.id,CASE WHEN c.id IS NULL THEN p.name ELSE c.name||' · '||p.name END,?,?,? FROM products p LEFT JOIN product_categories c ON c.id=p.category_id WHERE p.id=?",crypto.randomUUID(),movementId,item.qty,item.unit_credit_price,item.qty*item.unit_credit_price,item.product_id);b.changed();
+   }
+   if(openingItems.length)b.guard("(SELECT COALESCE(SUM(subtotal),0) FROM opening_items WHERE movement_id=?)=?",movementId,openingBalance);
   }
-  b.audit(p,"CLIENT_SAVE",id,reason,old?{...old,...privateOld}:null,{name,address,address_reference:reference,route_order:order,linked_email:linkedEmail,is_active:isActive,opening_balance:old?null:openingBalance,uid_revoked:!!old&&old.linked_email!==linkedEmail});
+  b.audit(p,"CLIENT_SAVE",id,reason,old?{...old,...privateOld}:null,{name,address,address_reference:reference,route_order:order,linked_email:linkedEmail,is_active:isActive,opening_balance:old?null:openingBalance,...(openingItems.length?{opening_items:openingItems}:{}),uid_revoked:!!old&&old.linked_email!==linkedEmail});
  });
 }
 export async function adjustBalance(db:D1Database,p:Principal,input:Input){
