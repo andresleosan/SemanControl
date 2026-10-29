@@ -4,6 +4,8 @@ nodeLinker: hoisted
 packageImportMethod: hardlink
 
 overrides:
+  vite: 8.3.5
+  're2js@>=2 <3': 2.8.7
   '@grpc/grpc-js': 1.14.6
   '@node-minify/core>glob': 10.5.0
 
